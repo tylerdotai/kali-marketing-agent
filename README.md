@@ -6,12 +6,12 @@
   <h3 align="center">Kali's Marketing Agent</h3>
 
   <p align="center">
-    OpenClaw-powered marketing automation for campaign management, content creation, and lead tracking.
+    OpenClaw-powered marketing automation for campaign management, content creation, and lead tracking — tailored for construction, infrastructure, and consulting industries.
     <br />
     <a href="https://codeberg.org/tylerdotai/kali-marketing-agent"><strong>View on Codeberg »</strong></a>
     <br />
     <br />
-    Built for Kali (FTW DAO) — Marketing Manager
+    Built for <a href="https://linkedin.com/in/itsmskali">Kali O'Campo</a> — Business Development Manager @ GNB Global Inc., Owner @ The SaltHaus Group
   </p>
 </div>
 
@@ -46,14 +46,20 @@
 
 Kali's Marketing Agent is an OpenClaw-powered automation system designed for marketing managers. It handles campaign planning, content creation, lead tracking, and email nurture sequences — all from a MacBook.
 
-**Built for:** Kali (FTW DAO) — Marketing Manager
+**Built for:** Kali O'Campo — Business Development Manager @ GNB Global Inc., Owner @ The SaltHaus Group
+
+**Her Industries:**
+- Construction & Infrastructure (GNB Global — weather protection systems)
+- Energy & Renewables
+- SMB Consulting (SaltHaus — Fractional CMO services)
 
 **What it does:**
 - 📅 Plan and execute full marketing campaigns
-- ✍️ Generate social media content (Instagram, Facebook, TikTok)
+- ✍️ Generate social media content (Instagram, Facebook, LinkedIn)
 - 📧 Build email nurture sequences
 - 👥 Track leads through pipeline stages
 - 🎨 Connect to Canva for design generation
+- 🔍 Research construction/infrastructure industry trends
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
