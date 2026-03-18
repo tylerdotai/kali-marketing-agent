@@ -1,3 +1,18 @@
+---
+name: lead-tracker
+description: |
+  Track leads through pipeline stages using Apple Reminders.
+  Use when: adding leads, updating pipeline stage, follow-up reminders, prospect tracking.
+triggers:
+  - "new lead"
+  - "add lead"
+  - "track lead"
+  - "lead pipeline"
+  - "follow up with"
+  - "lead status"
+---
+
+
 # Lead Tracker Skill
 
 ## Purpose

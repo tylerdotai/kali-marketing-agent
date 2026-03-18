@@ -1,209 +1,120 @@
-<a id="readme-top"></a>
+# Kali's Marketing Agent
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <h3 align="center">Kali's Marketing Agent</h3>
+**Self-installing bootstrap kit for Kali's OpenClaw marketing agent.**
 
-  <p align="center">
-    OpenClaw-powered marketing automation for campaign management, content creation, and lead tracking — tailored for construction, infrastructure, and consulting industries.
-    <br />
-    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent"><strong>View on Codeberg »</strong></a>
-    <br />
-    <br />
-    Built for <a href="https://linkedin.com/in/itsmskali">Kali O'Campo</a> — Business Development Manager @ GNB Global Inc., Owner @ The SaltHaus Group
-  </p>
-</div>
+---
 
+## 🚀 Quick Install
 
+When you install OpenClaw on Kali's MacBook, run:
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ol>
-</details>
+```bash
+# Point to this repo
+git clone ssh://git@codeberg.org:tylerdotai/kali-marketing-agent.git
+cd kali-marketing-agent
 
-
-
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-Kali's Marketing Agent is an OpenClaw-powered automation system designed for marketing managers. It handles campaign planning, content creation, lead tracking, and email nurture sequences — all from a MacBook.
-
-**Built for:** Kali O'Campo — Business Development Manager @ GNB Global Inc., Owner @ The SaltHaus Group
-
-**Her Industries:**
-- Construction & Infrastructure (GNB Global — weather protection systems)
-- Energy & Renewables
-- SMB Consulting (SaltHaus — Fractional CMO services)
-
-**What it does:**
-- 📅 Plan and execute full marketing campaigns
-- ✍️ Generate social media content (Instagram, Facebook, LinkedIn)
-- 📧 Build email nurture sequences
-- 👥 Track leads through pipeline stages
-- 🎨 Connect to Canva for design generation
-- 🔍 Research construction/infrastructure industry trends
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-### Prerequisites
-
-- MacBook (macOS 12+)
-- OpenClaw installed
-- Telegram account (for notifications)
-- Canva account (for design)
-- Gmail or iCloud email
-
-### Installation
-
-1. **Install OpenClaw**
-   ```sh
-   brew install openclaw
-   # OR download from https://openclaw.ai
-   ```
-
-2. **Clone this repository**
-   ```sh
-   git clone ssh://git@codeberg.org:tylerdotai/kali-marketing-agent.git
-   cd kali-marketing-agent
-   ```
-
-3. **Copy skills to OpenClaw**
-   ```sh
-   cp -r campaign-manager ~/.openclaw/skills/
-   cp -r lead-tracker ~/.openclaw/skills/
-   ```
-
-4. **Configure services**
-   - Connect Telegram: `openclaw configure channels`
-   - Add Canva API token (see SETUP.md)
-   - Verify Reminders access
-
-5. **Test the setup**
-   ```sh
-   # Test campaign creation
-   "Create a campaign brief for our tattoo shop reopening"
-   
-   # Test lead tracking
-   "Add new lead - Kali, marketing manager at FTW DAO"
-   ```
-
-For detailed setup instructions, see [SETUP.md](./SETUP.md)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- USAGE -->
-## Usage
-
-### Campaign Manager
-```
-User: Create a campaign for product launch
-Agent: Generates full campaign plan with timeline, content calendar, reminders
+# Run bootstrap
+bash bootstrap.sh
 ```
 
-### Lead Tracking
+The bootstrap script will:
+1. Clone this repo
+2. Install all skills to `~/.openclaw/skills/`
+3. Set up the client profile
+4. Check for required API keys
+
+---
+
+## 📦 What's Included
+
+### Skills (5)
+| Skill | Purpose |
+|-------|---------|
+| `campaign-manager` | Plan and execute full campaigns |
+| `lead-tracker` | Track leads through pipeline stages |
+| `social-post` | Generate platform-specific social content |
+| `email-nurture` | Build email nurture sequences |
+| `research` | Competitor and market research |
+
+### Setup
+| File | Purpose |
+|------|---------|
+| `bootstrap.sh` | One-command installer |
+| `manifest.json` | Skill registry and config specs |
+| `setup/` | Setup assistant skill |
+
+### Templates & Workflows
+| File | Purpose |
+|------|---------|
+| `workflows/content-creation.md` | Content pipeline |
+| `workflows/lead-nurturing.md` | Lead follow-up flow |
+| `templates/social-post.md` | Post templates |
+
+---
+
+## 🔑 API Keys Needed
+
+| Key | Required | Get It |
+|-----|----------|--------|
+| **CANVA_API_TOKEN** | ✅ Yes | https://www.canva.com/developers/ |
+| **Gmail API** | Optional | https://console.cloud.google.com/ |
+| **iCloud password** | Optional | https://appleid.apple.com/app-passwords |
+
+After bootstrap, configure keys:
+```bash
+openclaw config set CANVA_API_TOKEN <token>
 ```
-User: New lead from FTW DAO - Kali, marketing for crypto startup
-Agent: Creates lead card, sets follow-up reminders, tracks pipeline stage
+
+---
+
+## 👤 Client Profile
+
+Built for **Kali O'Campo**:
+- **GNB Global Inc.** — Weather protection systems for construction
+- **The SaltHaus Group** — Fractional CMO consulting
+- **Industries:** Construction, Infrastructure, Energy, SMB Consulting
+- **Location:** Grapevine, Texas
+
+See `KALI.md` for full profile.
+
+---
+
+## 📋 After Install Checklist
+
+- [ ] Run `bash bootstrap.sh`
+- [ ] Add Canva API token: `openclaw config set CANVA_API_TOKEN <token>`
+- [ ] (Optional) Configure email
+- [ ] Test: "Create a campaign brief for GNB Global"
+- [ ] Connect Telegram for notifications
+- [ ] Join FTW DAO community
+
+---
+
+## 🆘 Support
+
+**Tyler Delano** — @tylerdotai on Telegram
+
+---
+
+## Repository Structure
+
 ```
-
-### Content Creation
+kali-marketing-agent/
+├── README.md
+├── manifest.json          # Skill registry
+├── bootstrap.sh           # One-command installer
+├── KALI.md               # Client profile
+├── SETUP.md              # Detailed setup guide
+├── skills/
+│   ├── campaign-manager/
+│   ├── lead-tracker/
+│   ├── social-post/
+│   ├── email-nurture/
+│   ├── research/
+│   └── setup/
+├── workflows/
+│   ├── content-creation.md
+│   └── lead-nurturing.md
+└── templates/
+    └── social-post.md
 ```
-User: Write 5 Instagram posts for skincare brand launch
-Agent: Generates platform-specific posts with hashtags and design requests
-```
-
-### Email Sequences
-```
-User: Create a welcome email sequence for new subscribers
-Agent: Generates 5-email nurture sequence with subject lines and CTAs
-```
-
-### Quick Commands
-| Command | Action |
-|---------|--------|
-| `new lead: [name]` | Create lead + reminder |
-| `[name] status [stage]` | Update pipeline stage |
-| `content for [topic]` | Generate content plan |
-| `campaign [name]` | Create campaign brief |
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Campaign Manager skill
-- [x] Lead Tracker skill
-- [x] Email sequence templates
-- [x] Social post templates
-- [x] Setup guide
-- [ ] Canva MCP integration
-- [ ] Gmail API integration
-- [ ] LinkedIn MCP integration
-- [ ] Analytics dashboard
-- [ ] Custom skill builder
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions welcome! To contribute:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a pull request
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
-## License
-
-Distributed under the Unlicense License. See `LICENSE` for more information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTACT -->
-## Contact
-
-**Tyler Delano** — [@tylerdotai](https://twitter.com/tylerdotai)
-
-**Kali** — FTW DAO
-
-Project Link: https://codeberg.org/tylerdotai/kali-marketing-agent
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>

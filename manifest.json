@@ -1,0 +1,87 @@
+{
+  "name": "kali-marketing-agent",
+  "version": "1.0.0",
+  "description": "OpenClaw bootstrap kit for Kali's marketing agent",
+  "installCommand": "bash bootstrap.sh",
+  "repo": "ssh://git@codeberg.org:tylerdotai/kali-marketing-agent.git",
+  
+  "skills": [
+    {
+      "name": "campaign-manager",
+      "path": "skills/campaign-manager",
+      "description": "Plan and execute full marketing campaigns",
+      "triggers": ["campaign", "launch", "marketing plan", "brief"],
+      "requires": ["apple-reminders"],
+      "optional": ["canva"]
+    },
+    {
+      "name": "lead-tracker",
+      "path": "skills/lead-tracker", 
+      "description": "Track leads through pipeline stages",
+      "triggers": ["lead", "pipeline", "follow up", "prospect"],
+      "requires": ["apple-reminders"],
+      "optional": ["gmail", "icloud-email"]
+    },
+    {
+      "name": "social-post",
+      "path": "skills/social-post",
+      "description": "Generate platform-specific social media content",
+      "triggers": ["social post", "instagram", "linkedin", "facebook", "caption", "content"],
+      "requires": ["canva"],
+      "optional": []
+    },
+    {
+      "name": "email-nurture",
+      "path": "skills/email-nurture",
+      "description": "Build email nurture sequences and newsletters",
+      "triggers": ["email sequence", "newsletter", "nurture", "follow up email"],
+      "requires": ["icloud-email"],
+      "optional": ["gmail"]
+    },
+    {
+      "name": "research",
+      "path": "skills/research",
+      "description": "Research competitors, trends, and industry news",
+      "triggers": ["research", "competitor", "market trends", "industry news"],
+      "requires": [],
+      "optional": []
+    }
+  ],
+  
+  "requiredConfig": [
+    {
+      "key": "CANVA_API_TOKEN",
+      "description": "Canva API token for design generation",
+      "type": "string",
+      "required": true,
+      "requestMessage": "📌 Canva API token needed for design automation.\n\nGet yours at: https://www.canva.com/developers/\n\nPaste your API token:"
+    },
+    {
+      "key": "GMAIL_CLIENT_ID",
+      "description": "Gmail API OAuth client ID (optional if using iCloud)",
+      "type": "string", 
+      "required": false,
+      "requestMessage": "📌 Gmail API credentials for email campaigns (optional).\n\nIf you want to use Gmail, get credentials at: https://console.cloud.google.com/\n\nOr skip this and use iCloud email instead."
+    },
+    {
+      "key": "ICLOUD_APP_PASSWORD",
+      "description": "iCloud app-specific password for email",
+      "type": "string",
+      "required": false,
+      "requestMessage": "📌 iCloud app password for email (if using iCloud).\n\nCreate at: https://appleid.apple.com/app-passwords\n\nOr skip if using Gmail."
+    }
+  ],
+  
+  "systemPrompt": "You are Kali's marketing agent. Kali O'Campo is a Business Development Manager at GNB Global Inc. (weather protection systems for construction) and Owner of The SaltHaus Group (consulting). You help her with:\n- Marketing campaigns for construction/infrastructure industry\n- Content creation and social media\n- Lead tracking and follow-ups\n- Email nurture sequences\n- Business development outreach\n\nKali's style: Authentic, direct, no fluff. She was a TV host (Coffee with Kali). She's based in Grapevine, TX.\n\nAlways ask for required API keys if not configured.",
+  
+  "clientProfile": {
+    "name": "Kali O'Campo",
+    "industries": ["construction", "infrastructure", "energy", "consulting"],
+    "companies": {
+      "GNB Global": "Weather protection systems for construction",
+      "SaltHaus": "Strategic consulting for SMBs"
+    },
+    "tools": ["canva", "apple-reminders", "linkedin"],
+    "location": "Grapevine, Texas"
+  }
+}

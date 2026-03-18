@@ -1,3 +1,17 @@
+---
+name: campaign-manager
+description: |
+  Plan, execute, and track marketing campaigns from brief to completion.
+  Use when: creating campaigns, planning launches, marketing briefs, product announcements.
+triggers:
+  - "create campaign"
+  - "plan a launch"
+  - "marketing campaign"
+  - "campaign brief"
+  - "product launch"
+---
+
+
 # Campaign Manager Skill
 
 ## Purpose
