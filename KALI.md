@@ -122,7 +122,56 @@ Started "Coffee with Kali" show on The Country Network — exploring lives of gu
 | Platform | Handle |
 |----------|--------|
 | LinkedIn | @itsmskali |
-| Followers | 2,237 |
+| YouTube | @kaliocampo1014 |
+
+**YouTube Stats:** 27 subscribers | 30 videos
+
+### Coffee with Kali (YouTube Series)
+A talk show on **The Country Network** exploring authentic stories and personal development.
+
+**Episode Topics (24 episodes, 2019-2020):**
+- Mindset & personal growth
+- Success & self-identity
+- Overcoming fear, stress, negative emotions
+- Goal setting & getting clear
+- Positivity & authenticity
+- Health tips (with Ben Azadi)
+- Coffee/entrepreneurship (LYMI Coffee)
+
+**Sample Episode Titles:**
+- "HEAL PHYSICAL & EMOTIONAL PAIN THROUGH MINDSET" (204 views - most popular)
+- "WHY POSITIVITY IS BULLSH*T" (204 views)
+- "SUCCESS BY BEING YOURSELF" (57 views)
+- "YOUR GOALS DETERMINE WHO YOU BECOME"
+- "HOW TO INCREASE YOUR INCOME + IMPACT"
+
+**Content Theme:** Authentic, motivational, no fluff — real conversations with real people.
+
+**Note:** This content is from her LYMI Coffee era (2019-2023). She's since pivoted to construction/infrastructure marketing, but this shows her communication skills and authentic storytelling style.
+
+---
+
+## Personal Brand DNA (From Her Content)
+
+### Voice & Tone
+- Authentic and direct
+- Calls out "bullshit" (her words)
+- Uplifting but real
+- No toxic positivity — real talk
+- Encourages action over passive wishing
+
+### Core Messages
+- "Say yes to life"
+- "Get clear already"
+- "Your goals determine who you become"
+- "Nobody has everything figured out"
+- "Stop being stuck"
+
+### Visual Style (from titles)
+- Short-form vertical clips
+- Quote-style thumbnails
+- First-person "I" statements
+- ☕️ Coffee emoji as brand marker
 
 Recent activity: Comments on posts (engaged with FTW DAO community)
 
