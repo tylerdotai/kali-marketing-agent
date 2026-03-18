@@ -1,32 +1,17 @@
 <a id="readme-top"></a>
 
-<!-- PROJECT SHIELDS -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![License][license-shield]][license-url]
-
-
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://codeberg.org/tylerdotai/kali-marketing-agent">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
   <h3 align="center">Kali's Marketing Agent</h3>
 
   <p align="center">
     OpenClaw-powered marketing automation for campaign management, content creation, and lead tracking.
     <br />
-    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent"><strong>Explore the docs »</strong></a>
+    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent"><strong>View on Codeberg »</strong></a>
     <br />
     <br />
-    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent/issues">Report Bug</a>
-    &middot;
-    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent/issues">Request Feature</a>
+    Built for Kali (FTW DAO) — Marketing Manager
   </p>
 </div>
 
@@ -95,7 +80,7 @@ Kali's Marketing Agent is an OpenClaw-powered automation system designed for mar
 
 2. **Clone this repository**
    ```sh
-   git clone ssh://git@codeberg.org/tylerdotai/kali-marketing-agent.git
+   git clone ssh://git@codeberg.org:tylerdotai/kali-marketing-agent.git
    cd kali-marketing-agent
    ```
 
@@ -160,7 +145,7 @@ Agent: Generates 5-email nurture sequence with subject lines and CTAs
 | `content for [topic]` | Generate content plan |
 | `campaign [name]` | Create campaign brief |
 
-<p align="right">(<a href="#readme-top">back to top)</p)
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -177,8 +162,6 @@ Agent: Generates 5-email nurture sequence with subject lines and CTAs
 - [ ] LinkedIn MCP integration
 - [ ] Analytics dashboard
 - [ ] Custom skill builder
-
-See the [open issues](https://codeberg.org/tylerdotai/kali-marketing-agent/issues) for full list.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -218,17 +201,3 @@ Distributed under the Unlicense License. See `LICENSE` for more information.
 Project Link: https://codeberg.org/tylerdotai/kali-marketing-agent
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-[contributors-shield]: https://img.shields.io/codeberg/contributors/tylerdotai/kali-marketing-agent?style=for-the-badge
-[contributors-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/members
-[forks-shield]: https://img.shields.io/codeberg/forks/tylerdotai/kali-marketing-agent?style=for-the-badge
-[forks-url]: https://codeberg.org/tylerdotai/kali-marketing-agent
-[stars-shield]: https://img.shields.io/codeberg/stars/tylerdotai/kali-marketing-agent?style=for-the-badge
-[stars-url]: https://codeberg.org/tylerdotai/kali-marketing-agent
-[issues-shield]: https://img.shields.io/codeberg/issues/tylerdotai/kali-marketing-agent?style=for-the-badge
-[issues-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/issues
-[license-shield]: https://img.shields.io/codeberg/license/tylerdotai/kali-marketing-agent?style=for-the-badge
-[license-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/blob/main/LICENSE
