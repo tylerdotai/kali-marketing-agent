@@ -56,9 +56,17 @@ async function api(endpoint, options = {}) {
 // ============ DATA LOADING ============
 
 async function loadPipeline() {
-    const data = await api('/pipeline');
-    if (!data) return;
-    renderPipeline(data);
+    // Fetch both pipeline data and leads in parallel
+    const [pipelineData, leads] = await Promise.all([
+        api('/pipeline'),
+        api('/leads')
+    ]);
+    if (!pipelineData) return;
+    
+    // Store leads globally for filtering
+    currentLeads = leads || [];
+    
+    renderPipeline(pipelineData);
 }
 
 async function loadStats() {
