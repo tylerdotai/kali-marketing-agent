@@ -186,14 +186,14 @@ Agent: Generates platform-specific posts with hashtags and design requests
 - [x] Email Nurture sequences
 - [x] Research skill
 - [x] Setup assistant
+- [x] Canva MCP integration
+- [x] LinkedIn management (browser-based)
+- [x] Gmail integration (via gog skill)
 
 #### Apps
 - [x] Kali CRM (SQLite-based pipeline tracking)
 
 #### Coming Soon
-- [ ] Canva MCP integration
-- [ ] Gmail API integration
-- [ ] LinkedIn MCP integration
 - [ ] Analytics dashboard
 - [ ] Client onboarding flow
 - [ ] Proposal templates

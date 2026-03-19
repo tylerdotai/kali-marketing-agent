@@ -45,6 +45,45 @@
       "triggers": ["research", "competitor", "market trends", "industry news"],
       "requires": [],
       "optional": []
+    },
+    {
+      "name": "canva",
+      "path": "skills/canva",
+      "description": "Generate marketing designs via Canva MCP server",
+      "triggers": ["canva", "design", "graphic", "visual", "create image"],
+      "requires": ["canva-mcp-server"],
+      "optional": []
+    },
+    {
+      "name": "linkedin",
+      "path": "skills/linkedin",
+      "description": "Manage LinkedIn profiles and post content via browser automation",
+      "triggers": ["linkedin", "post to linkedin", "linkedin content"],
+      "requires": ["browser"],
+      "optional": []
+    }
+  ],
+
+  "mcpServers": [
+    {
+      "name": "canva",
+      "package": "@iflow-mcp/mattcoatsworth-canva-mcp-server",
+      "description": "Canva API integration for design generation",
+      "npmPackage": "@iflow-mcp/mattcoatsworth-canva-mcp-server",
+      "env": {
+        "CANVA_API_TOKEN": "required"
+      },
+      "setupCommand": "mcporter server add canva --type npm --package @iflow-mcp/mattcoatsworth-canva-mcp-server --auth CANVA_API_TOKEN=<token>"
+    }
+  ],
+  
+  "requiredConfig": [
+    {
+      "key": "CANVA_API_TOKEN",
+      "description": "Canva API token for design generation",
+      "type": "string",
+      "required": true,
+      "requestMessage": "📌 Canva API token needed for design automation.\n\nGet yours at: https://www.canva.com/developers/\n\nPaste your API token:"
     }
   ],
   
@@ -59,30 +98,8 @@
       "requires": []
     }
   ],
-    {
-      "key": "CANVA_API_TOKEN",
-      "description": "Canva API token for design generation",
-      "type": "string",
-      "required": true,
-      "requestMessage": "📌 Canva API token needed for design automation.\n\nGet yours at: https://www.canva.com/developers/\n\nPaste your API token:"
-    },
-    {
-      "key": "GMAIL_CLIENT_ID",
-      "description": "Gmail API OAuth client ID (optional if using iCloud)",
-      "type": "string", 
-      "required": false,
-      "requestMessage": "📌 Gmail API credentials for email campaigns (optional).\n\nIf you want to use Gmail, get credentials at: https://console.cloud.google.com/\n\nOr skip this and use iCloud email instead."
-    },
-    {
-      "key": "ICLOUD_APP_PASSWORD",
-      "description": "iCloud app-specific password for email",
-      "type": "string",
-      "required": false,
-      "requestMessage": "📌 iCloud app password for email (if using iCloud).\n\nCreate at: https://appleid.apple.com/app-passwords\n\nOr skip if using Gmail."
-    }
-  ],
   
-  "systemPrompt": "You are Kali's marketing agent. Kali O'Campo is a Business Development Manager at GNB Global Inc. (weather protection systems for construction) and Owner of The SaltHaus Group (consulting). You help her with:\n- Marketing campaigns for construction/infrastructure industry\n- Content creation and social media\n- Lead tracking and follow-ups\n- Email nurture sequences\n- Business development outreach\n\nKali's style: Authentic, direct, no fluff. She was a TV host (Coffee with Kali). She's based in Grapevine, TX.\n\nAlways ask for required API keys if not configured.",
+  "systemPrompt": "You are Kali's marketing agent. Kali O'Campo is a Business Development Manager at GNB Global Inc. (weather protection systems for construction) and Owner of The SaltHaus Group (consulting). You help her with:\n- Marketing campaigns for construction/infrastructure industry\n- Content creation and social media (via Canva)\n- Lead tracking and follow-ups (via CRM)\n- Email nurture sequences (via iCloud/Gmail)\n- LinkedIn content (via browser)\n- Business development outreach\n\nKali's style: Authentic, direct, no fluff. She was a TV host (Coffee with Kali). She's based in Grapevine, TX.\n\nAlways ask for required API keys if not configured.",
   
   "clientProfile": {
     "name": "Kali O'Campo",
@@ -91,7 +108,7 @@
       "GNB Global": "Weather protection systems for construction",
       "SaltHaus": "Strategic consulting for SMBs"
     },
-    "tools": ["canva", "apple-reminders", "linkedin"],
+    "tools": ["canva", "apple-reminders", "linkedin", "gog"],
     "location": "Grapevine, Texas"
   }
 }
