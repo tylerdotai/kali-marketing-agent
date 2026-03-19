@@ -39,8 +39,8 @@ def init_db():
                 stage TEXT DEFAULT 'new',
                 notes TEXT,
                 archived INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                created_at TEXT,
+                updated_at TEXT,
                 last_contacted TEXT
             );
             
@@ -49,7 +49,7 @@ def init_db():
                 lead_id INTEGER NOT NULL,
                 type TEXT NOT NULL,
                 description TEXT,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                created_at TEXT,
                 FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
             );
             
@@ -64,11 +64,13 @@ def create_lead(name: str, company: str = None, email: str = None, phone: str = 
                 source: str = None, value: float = None, stage: str = 'new',
                 notes: str = None) -> int:
     """Create a new lead. Returns lead ID."""
+    now = datetime.now().isoformat()
+    
     with get_db() as db:
         cursor = db.execute("""
-            INSERT INTO leads (name, company, email, phone, source, value, stage, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (name, company, email, phone, source, value, stage, notes))
+            INSERT INTO leads (name, company, email, phone, source, value, stage, notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (name, company, email, phone, source, value, stage, notes, now, now))
         return cursor.lastrowid
 
 def get_lead(lead_id: int) -> Optional[Dict]:
