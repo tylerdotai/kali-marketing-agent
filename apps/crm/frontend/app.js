@@ -433,7 +433,7 @@ async function showLeadDetail(id) {
             '<div class="detail-item"><label>Source</label><span>' + escapeHtml(lead.source || '—') + '</span></div>' +
             '<div class="detail-item"><label>Business</label><span class="lead-badge ' + lead.business_type + '">' + (lead.business_type === 'gnb' ? 'GNB Global' : 'SaltHaus') + '</span></div>' +
             '<div class="detail-item"><label>Value</label><span style="color: var(--success); font-weight: 600;">' + value + '</span></div>' +
-            '<div class="detail-item"><label>Follow-up</label><span>' + followup + '</span></div>' +
+            '<div class="detail-item"><label>Follow-up</label><span style="cursor:pointer;color:var(--accent)" onclick="updateFollowup()">' + followup + ' (click)</span></div>' +
             '<div class="detail-item"><label>Created</label><span>' + created + '</span></div>' +
             '<div class="detail-item"><label>Last Contact</label><span>' + lastContact + '</span></div>' +
         '</div>' +
@@ -506,6 +506,18 @@ async function logActivity(type, description) {
     showLeadDetail(currentDetailLead.id);
     loadActivities();
     showToast('Activity logged', 'success');
+}
+
+async function updateFollowup() {
+    if (!currentDetailLead) return;
+    const newDate = prompt('Set follow-up date (YYYY-MM-DD):', currentDetailLead.next_followup ? currentDetailLead.next_followup.split('T')[0] : '');
+    if (newDate === null) return;
+    await api('/leads/' + currentDetailLead.id, {
+        method: 'PUT',
+        body: JSON.stringify({ next_followup: newDate || null })
+    });
+    showLeadDetail(currentDetailLead.id);
+    showToast('Follow-up updated', 'success');
 }
 
 // =====================================
