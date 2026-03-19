@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>CRM Command Center</title>
+    <link rel="stylesheet" href="widget.css">
+</head>
+<body>
+    <div class="widget-container" id="widget">
+        <!-- Toggle Button -->
+        <button class="widget-toggle" id="widgetToggle" onclick="toggleWidget()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span id="toggleBadge" class="badge" style="display:none">0</span>
+        </button>
+
+        <!-- Chat Panel -->
+        <div class="chat-panel" id="chatPanel">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span>Command Center</span>
+                </div>
+                <button class="btn-close" onclick="toggleWidget()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-content">
+                        <p>Hello! I'm your CRM assistant. I can help you:</p>
+                        <ul>
+                            <li>"Add a lead: John Smith, Acme Corp"</li>
+                            <li>"Move lead 5 to qualified"</li>
+                            <li>"Show me all leads from LinkedIn"</li>
+                            <li>"Create a proposal for ABC Construction"</li>
+                        </ul>
+                        <p>Type a command or question below.</p>
+                    </div>
+                    <span class="message-time">Just now</span>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" 
+                       placeholder="Type a command..." 
+                       onkeypress="handleKeyPress(event)">
+                <button class="btn-send" onclick="sendMessage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        let isOpen = false;
+        let pendingCount = 0;
+
+        function toggleWidget() {
+            const widget = document.getElementById('widget');
+            const panel = document.getElementById('chatPanel');
+            isOpen = !isOpen;
+            
+            if (isOpen) {
+                widget.classList.add('open');
+                document.getElementById('chatInput').focus();
+                document.getElementById('toggleBadge').style.display = 'none';
+            } else {
+                widget.classList.remove('open');
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Show typing indicator
+            const typingId = addTypingIndicator();
+
+            try {
+                // Send to OpenClaw agent endpoint (if available) or process locally
+                const response = await processCommand(message);
+                
+                // Remove typing indicator
+                removeTypingIndicator(typingId);
+                
+                // Add bot response
+                addMessage(response.message, 'bot', response.data);
+                
+                // If data changed, refresh the page
+                if (response.refresh) {
+                    if (typeof loadLeads === 'function') loadLeads();
+                    if (typeof loadStats === 'function') loadStats();
+                    if (typeof loadActivities === 'function') loadActivities();
+                }
+            } catch (error) {
+                removeTypingIndicator(typingId);
+                addMessage('Error: ' + error.message, 'bot');
+            }
+        }
+
+        async function processCommand(command) {
+            const cmd = command.toLowerCase();
+
+            // Add Lead
+            if (cmd.includes('add') && cmd.includes('lead') || cmd.startsWith('new lead')) {
+                const parsed = parseLeadText(command);
+                const result = await api('/leads', {
+                    method: 'POST',
+                    body: JSON.stringify(parsed)
+                });
+                return {
+                    message: `Created lead "${parsed.name}" at ${parsed.company || 'N/A'}.`,
+                    data: result,
+                    refresh: true
+                };
+            }
+
+            // Move Stage
+            if (cmd.includes('move') || cmd.includes('stage') || cmd.includes('status')) {
+                const match = command.match(/lead\s*(\d+).*?(new|contacted|qualified|proposal|negotiation|won|lost)/i);
+                if (match) {
+                    const [, leadId, stage] = match;
+                    await api(`/leads/${leadId}/stage?new_stage=${stage}`, { method: 'POST' });
+                    return {
+                        message: `Moved lead #${leadId} to ${stage}.`,
+                        refresh: true
+                    };
+                }
+            }
+
+            // Search/Show leads
+            if (cmd.includes('show') || cmd.includes('list') || cmd.includes('find') || cmd.includes('search')) {
+                if (cmd.includes('lead')) {
+                    const leads = await api('/leads');
+                    const leadList = leads.slice(0, 10).map(l => 
+                        `• ${l.name} (${l.company || 'No co'}) - ${l.stage}`
+                    ).join('\n');
+                    return {
+                        message: `Found ${leads.length} leads:\n${leadList}`,
+                        data: leads
+                    };
+                }
+            }
+
+            // Stats
+            if (cmd.includes('stat') || cmd.includes('dashboard') || cmd.includes('pipeline')) {
+                const stats = await api('/stats');
+                return {
+                    message: `Pipeline: $${formatNumber(stats.pipeline_value)} | Won: $${formatNumber(stats.won_value)} | Total: ${stats.total_leads} leads`,
+                    data: stats
+                };
+            }
+
+            // Quick add (natural language)
+            if (cmd.includes('from')) {
+                const result = await api('/quick-add', {
+                    method: 'POST',
+                    body: JSON.stringify({ text: command })
+                });
+                return {
+                    message: `Added lead from input.`,
+                    refresh: true
+                };
+            }
+
+            // Delete lead
+            if (cmd.includes('delete') && cmd.includes('lead')) {
+                const match = command.match(/delete.*lead\s*(\d+)/i);
+                if (match) {
+                    await api(`/leads/${match[1]}`, { method: 'DELETE' });
+                    return {
+                        message: `Deleted lead #${match[1]}.`,
+                        refresh: true
+                    };
+                }
+            }
+
+            // Help
+            if (cmd.includes('help') || cmd.includes('command') || cmd === '?') {
+                return {
+                    message: `Commands I understand:
+• "Add lead: John Smith, Acme Corp"
+• "Move lead 5 to qualified"
+• "Show me all leads"
+• "Delete lead 3"
+• "Search Amazon"
+• "Stats" or "Dashboard"
+• "Quick add: New lead from event - Jane Doe, Tech Inc"
+• Just describe what you need naturally!`
+                };
+            }
+
+            // Fallback - try quick add
+            const result = await api('/quick-add', {
+                method: 'POST',
+                body: JSON.stringify({ text: command })
+            });
+            return {
+                message: `Processed: "${command}"`,
+                refresh: true
+            };
+        }
+
+        function parseLeadText(text) {
+            // Extract name and company from natural text
+            const result = {
+                name: '',
+                company: null,
+                source: null,
+                business_type: 'gnb'
+            };
+
+            // Patterns like "Add lead: John Smith, Acme Corp"
+            let match = text.match(/lead[:\s]+([^,]+),?\s*([^,]+)?/i);
+            if (match) {
+                result.name = match[1].trim();
+                result.company = match[2]?.trim() || null;
+            } else {
+                result.name = text.replace(/add|lead|new|from/gi, '').trim();
+            }
+
+            // Detect source
+            const sources = ['linkedin', 'event', 'referral', 'website', 'cold call', 'email'];
+            for (const src of sources) {
+                if (text.toLowerCase().includes(src)) {
+                    result.source = src.charAt(0).toUpperCase() + src.slice(1);
+                    break;
+                }
+            }
+
+            // Detect business type
+            if (text.toLowerCase().includes('consulting') || text.toLowerCase().includes('salthaus')) {
+                result.business_type = 'salthaus';
+            }
+
+            return result;
+        }
+
+        function addMessage(content, type, data = null) {
+            const messages = document.getElementById('chatMessages');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            let dataHtml = '';
+            if (data && type === 'bot') {
+                dataHtml = `<button class="data-toggle" onclick="toggleData(this)">View data</button><pre class="data-content" style="display:none">${JSON.stringify(data, null, 2)}</pre>`;
+            }
+
+            msg.innerHTML = `
+                <div class="message-content">
+                    <p>${escapeHtml(content)}</p>
+                    ${dataHtml}
+                </div>
+                <span class="message-time">${time}</span>
+            `;
+
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const messages = document.getElementById('chatMessages');
+            const id = 'typing-' + Date.now();
+            const msg = document.createElement('div');
+            msg.className = 'message bot';
+            msg.id = id;
+            msg.innerHTML = `
+                <div class="message-content">
+                    <div class="typing">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function toggleData(btn) {
+            const pre = btn.nextElementSibling;
+            const isHidden = pre.style.display === 'none';
+            pre.style.display = isHidden ? 'block' : 'none';
+            btn.textContent = isHidden ? 'Hide data' : 'View data';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+            return num?.toString() || '0';
+        }
+
+        // API helper
+        async function api(endpoint, options = {}) {
+            const res = await fetch(API + endpoint, {
+                headers: { 'Content-Type': 'application/json' },
+                ...options
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        // Add badge notification
+        function notifyPending() {
+            pendingCount++;
+            const badge = document.getElementById('toggleBadge');
+            badge.textContent = pendingCount;
+            badge.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
