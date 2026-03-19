@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPipeline();
     loadStats();
     
-    // Handle swipe gestures on mobile
+    // Native scroll is handled by CSS
     setupSwipeGestures();
 });
 
@@ -478,26 +478,6 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// ============ SWIPE GESTURES (Mobile) ============
-
-function setupSwipeGestures() {
-    const pipeline = document.getElementById('pipeline');
-    let startX = 0;
-    let scrollLeft = 0;
-    
-    pipeline.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].pageX;
-        scrollLeft = pipeline.scrollLeft;
-    });
-    
-    pipeline.addEventListener('touchmove', (e) => {
-        e.preventDefault(); // Prevent browser scroll
-        const x = e.touches[0].pageX;
-        const walk = (x - startX) * 1.5;
-        pipeline.scrollLeft = scrollLeft - walk;
-    }, { passive: false });
-}
-
 // Close modals on escape
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -506,21 +486,4 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Pull to refresh
-let touchStartY = 0;
-document.getElementById('pipelineView').addEventListener('touchstart', (e) => {
-    if (pipelineView.scrollTop === 0) {
-        touchStartY = e.touches[0].pageY;
-    }
-}, { passive: true });
 
-document.getElementById('pipelineView').addEventListener('touchend', (e) => {
-    const touchEndY = e.changedTouches[0].pageY;
-    // Only trigger pull-to-refresh if mostly vertical swipe
-    const deltaY = touchEndY - touchStartY;
-    if (deltaY > 50 && deltaY > Math.abs(e.changedTouches[0].pageX - startX)) {
-        if (pipelineView.scrollTop === 0) {
-            refreshData();
-        }
-    }
-});
