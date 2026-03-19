@@ -1,106 +1,79 @@
-# CRM - Lightweight Lead & Pipeline Management
+# Kali Marketing Agent
 
-A clean, agent-first CRM built for local/offline use. Track leads through your sales pipeline with a modern, responsive interface that works on desktop and mobile.
+Personal marketing agent for Kali O'Campo - BD Manager at GNB Global Inc. and Owner at The SaltHaus Group.
 
-## Features
+## Overview
 
-- **Pipeline View** - Kanban-style board with drag-scroll horizontal layout
-- **Lead Management** - Full CRUD with name, company, email, phone, source, value, notes
-- **Activity Tracking** - Log calls, emails, meetings, and notes
-- **Stage Management** - Move leads through pipeline stages
-- **Analytics** - Summary stats and stage breakdown
-- **Mobile Responsive** - Works on iOS, Android, and desktop
-- **Agent-First** - Every action is an API call for agent automation
+This agent is designed to assist with:
+- Campaign planning and management
+- Lead tracking and pipeline management
+- Content creation workflows
+- Social media integration (LinkedIn)
+- Proposal and document generation
+- Research and competitive analysis
 
-## Design
+## Skills
 
-- Apple-inspired light theme (#FAFAFA background, #C9A96E cream accent)
-- Clean typography with system fonts
-- Horizontal scroll pipeline (Pipefy/Trello style)
-- Slide-up detail panels on mobile
-- Touch-friendly with swipe gestures
+The agent has access to the following skill modules:
 
-## Tech Stack
+| Skill | Description |
+|-------|-------------|
+| lead-tracker | Lead tracking prompts and workflows |
+| campaign-manager | Campaign planning and execution |
+| linkedin | LinkedIn browser automation |
+| setup | Initial setup and configuration |
+| onboarding | Client onboarding workflows |
+| analytics | Marketing analytics |
+| proposals | Proposal generation |
+| canva | Design integration (when available) |
 
-- **Backend:** Python 3 + FastAPI + SQLite
-- **Frontend:** Vanilla HTML/CSS/JS (no dependencies)
-- **Storage:** Local SQLite database
-
-## Quick Start
-
-```bash
-cd apps/crm/backend
-pip install -r requirements.txt
-python3 -m uvicorn server:app --reload --port 8765
-```
-
-Open http://localhost:8765
-
-## API
-
-Base URL: `http://localhost:8765/api`
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/leads` | GET | List all leads |
-| `/leads` | POST | Create lead |
-| `/leads/{id}` | GET | Get lead |
-| `/leads/{id}` | PUT | Update lead |
-| `/leads/{id}` | DELETE | Delete lead |
-| `/leads/{id}/stage` | POST | Move stage |
-| `/leads/{id}/activity` | POST | Log activity |
-| `/pipeline` | GET | Pipeline stats |
-| `/stats` | GET | Summary stats |
-
-### Example
-
-```bash
-# Add a lead
-curl -X POST http://localhost:8765/api/leads \
-  -H "Content-Type: application/json" \
-  -d '{"Name": "Sarah Johnson", "company": "Acme Corp", "value": 15000}'
-
-# Move to qualified
-curl -X POST http://localhost:8765/api/leads/1/stage \
-  -H "Content-Type: application/json" \
-  -d '{"stage": "qualified"}'
-```
-
-## Pipeline Stages
+## Architecture
 
 ```
-New → Contacted → Qualified → Proposal → Negotiation → Won
+kali-marketing-agent/
+├── skills/              # OpenClaw skill modules
+│   ├── lead-tracker/
+│   ├── campaign-manager/
+│   ├── linkedin/
+│   └── ...
+├── workflows/           # Reusable workflow templates
+├── templates/           # Document and content templates
+├── docs/               # Documentation
+└── SKILL.md           # Main agent skill
 ```
 
-## For Agents
+## CRM
 
-The CRM is designed for agent automation. Every action is accessible via API.
+A standalone lightweight CRM is available for lead management:
 
-**Skill File:** `apps/crm/SKILL.md` - Full API documentation for OpenClaw agents.
+**Repository:** https://codeberg.org/tylerdotai/lightweight-crm
 
-### Example Agent Commands
+The CRM features:
+- Pipeline tracking (New → Contacted → Qualified → Proposal → Negotiation → Won)
+- Activity logging (calls, emails, meetings, notes)
+- Mobile-responsive design
+- API-first architecture for agent automation
 
-```
-"Add lead: John Smith, TechCorp, worth 50k"
-"Move lead #3 to qualified"
-"Show me all proposal stage leads"
-"Log a call with Sarah about pricing"
-```
+## Setup
 
-## File Structure
+1. Clone this repository
+2. Install dependencies for any skills that require them
+3. Configure credentials (LinkedIn, Canva, etc.)
+4. Run the OpenClaw agent with the skill modules
 
-```
-apps/crm/
-├── backend/
-│   ├── server.py      # FastAPI server
-│   ├── database.py    # SQLite operations
-│   └── requirements.txt
-├── frontend/
-│   ├── index.html     # Main app
-│   ├── styles.css      # Styles
-│   └── app.js         # Application logic
-└── SKILL.md           # Agent skill documentation
-```
+## Client Profile
+
+**Kali O'Campo**
+- BD Manager @ GNB Global Inc. (weather protection for construction)
+- Owner @ The SaltHaus Group (fractional CMO/consulting for SMBs)
+
+**Primary Channels:**
+- LinkedIn (@itsmskali)
+- YouTube (@kaliocampo1014)
+
+**Target Markets:**
+- Construction companies (GNB)
+- Small/mid-size businesses (SaltHaus)
 
 ## License
 
