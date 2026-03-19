@@ -1,126 +1,272 @@
-# Kali's Marketing Agent
+<a id="readme-top"></a>
 
-**Self-installing bootstrap kit for Kali's OpenClaw marketing agent.**
+<!-- PROJECT SHIELDS -->
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![License][license-shield]][license-url]
 
----
 
-## 🚀 Quick Install
 
-When you install OpenClaw on Kali's MacBook, run:
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://codeberg.org/tylerdotai/kali-marketing-agent">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  </a>
 
-```bash
-# Point to this repo
-git clone ssh://git@codeberg.org:tylerdotai/kali-marketing-agent.git
-cd kali-marketing-agent
+  <h3 align="center">Kali's Marketing Agent</h3>
 
-# Run bootstrap
-bash bootstrap.sh
+  <p align="center">
+    OpenClaw-powered marketing automation for campaign management, content creation, and lead tracking — tailored for construction, infrastructure, and consulting industries.
+    <br />
+    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent">View Codeberg</a>
+    &middot;
+    <a href="https://github.com/tylerdotai/kali-marketing-agent/issues">Report Bug</a>
+    &middot;
+    <a href="https://github.com/tylerdotai/kali-marketing-agent/issues">Request Feature</a>
+  </p>
+</div>
+
+
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#built-with">Built With</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ol>
+</details>
+
+
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+
+Kali's Marketing Agent is an OpenClaw-powered automation system designed for marketing managers. It handles campaign planning, content creation, lead tracking, and email nurture sequences — all from a MacBook.
+
+**Built for:** Kali O'Campo — Business Development Manager @ GNB Global Inc., Owner @ The SaltHaus Group
+
+**Her Industries:**
+- Construction & Infrastructure (GNB Global — weather protection systems)
+- Energy & Renewables
+- SMB Consulting (SaltHaus — Fractional CMO services)
+
+**Core Features:**
+- 📅 Plan and execute full marketing campaigns
+- ✍️ Generate social media content (Instagram, Facebook, LinkedIn)
+- 📧 Build email nurture sequences
+- 👥 Track leads through pipeline stages
+- 🎨 Connect to Canva for design generation
+- 🔍 Research construction/infrastructure industry trends
+- 📊 Lightweight SQLite CRM for lead management
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+### Built With
+
+* [![OpenClaw][OpenClaw]][OpenClaw-url]
+* [![FastAPI][FastAPI]][FastAPI-url]
+* [![SQLite][SQLite]][SQLite-url]
+* [![Canva][Canva]][Canva-url]
+
+
+
+<!-- GETTING STARTED -->
+## Getting Started
+
+### Prerequisites
+
+- MacBook (macOS 12+)
+- OpenClaw installed
+- Telegram account (for notifications)
+- Canva account (for design)
+- Docker (for CRM app)
+
+### Installation
+
+1. **Clone this repository**
+   ```sh
+   git clone ssh://git@codeberg.org:tylerdotai/kali-marketing-agent.git
+   cd kali-marketing-agent
+   ```
+
+2. **Run the bootstrap installer**
+   ```sh
+   bash bootstrap.sh
+   ```
+
+3. **Add your API keys**
+   ```sh
+   openclaw config set CANVA_API_TOKEN <your-canva-token>
+   ```
+
+4. **Start the CRM app** (optional but recommended)
+   ```sh   cd apps/crm
+   docker-compose up -d
+   # Open http://localhost:8765
+   ```
+
+5. **Test the setup**
+   ```sh   # Create a campaign brief
+   "Create a campaign brief for GNB Global"   
+   # Add a new lead
+   "New lead from event - John Smith, Acme Corp"
+   # Generate social posts
+   "Write 5 LinkedIn posts for our weather protection systems"
+   ```
+
+For detailed setup instructions, see [SETUP.md](./SETUP.md)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- USAGE -->
+## Usage
+
+### Campaign Manager
+```
+User: Create a campaign for product launch
+Agent: Generates full campaign plan with timeline, content calendar, reminders
 ```
 
-The bootstrap script will:
-1. Clone this repo
-2. Install all skills to `~/.openclaw/skills/`
-3. Set up the client profile
-4. Check for required API keys
-
----
-
-## 📦 What's Included
-
-### Skills (6)
-| Skill | Purpose |
-|-------|---------|
-| `campaign-manager` | Plan and execute full campaigns |
-| `lead-tracker` | Track leads through pipeline stages |
-| `social-post` | Generate platform-specific social content |
-| `email-nurture` | Build email nurture sequences |
-| `research` | Competitor and market research |
-| `setup` | Setup assistant and API configuration |
-
-### Apps (1)
-| App | Purpose |
-|-----|---------|
-| `kali-crm` | Lightweight SQLite CRM with pipeline view |
-
-### Templates & Workflows
-| File | Purpose |
-|------|---------|
-| `workflows/content-creation.md` | Content pipeline |
-| `workflows/lead-nurturing.md` | Lead follow-up flow |
-| `templates/social-post.md` | Post templates |
-
----
-
-## 🔑 API Keys Needed
-
-| Key | Required | Get It |
-|-----|----------|--------|
-| **CANVA_API_TOKEN** | ✅ Yes | https://www.canva.com/developers/ |
-| **Gmail API** | Optional | https://console.cloud.google.com/ |
-| **iCloud password** | Optional | https://appleid.apple.com/app-passwords |
-
-After bootstrap, configure keys:
-```bash
-openclaw config set CANVA_API_TOKEN <token>
+### Lead Tracking
+```
+User: New lead from FTW DAO - Kali, marketing for crypto startup
+Agent: Creates lead card, sets follow-up reminders, tracks pipeline stage
 ```
 
----
+### CRM App
+Access the lightweight CRM at `http://localhost:8765` after starting with Docker:
+- Pipeline view (New → Contacted → Qualified → Proposal → Negotiation → Won/Lost)
+- Lead management with contact info and activity logging
+- Quick add via natural language
 
-## 👤 Client Profile
-
-Built for **Kali O'Campo**:
-- **GNB Global Inc.** — Weather protection systems for construction
-- **The SaltHaus Group** — Fractional CMO consulting
-- **Industries:** Construction, Infrastructure, Energy, SMB Consulting
-- **Location:** Grapevine, Texas
-
-See `KALI.md` for full profile.
-
----
-
-## 📋 After Install Checklist
-
-- [ ] Run `bash bootstrap.sh`
-- [ ] Add Canva API token: `openclaw config set CANVA_API_TOKEN <token>`
-- [ ] (Optional) Configure email
-- [ ] **Start CRM:** `cd apps/crm && docker-compose up -d` (then open http://localhost:8765)
-- [ ] Test: "Create a campaign brief for GNB Global"
-- [ ] Connect Telegram for notifications
-- [ ] Join FTW DAO community
-
----
-
-## 🆘 Support
-
-**Tyler Delano** — @tylerdotai on Telegram
-
----
-
-## Repository Structure
-
+### Social Content Creation
 ```
-kali-marketing-agent/
-├── README.md
-├── manifest.json          # Skill registry & app config
-├── bootstrap.sh           # One-command installer
-├── KALI.md               # Client profile
-├── SETUP.md              # Detailed setup guide
-├── skills/
-│   ├── campaign-manager/
-│   ├── lead-tracker/
-│   ├── social-post/
-│   ├── email-nurture/
-│   ├── research/
-│   └── setup/
-├── apps/
-│   └── crm/              # SQLite CRM app
-│       ├── backend/       # FastAPI + SQLite
-│       ├── frontend/      # Web UI
-│       └── docker-compose.yml
-├── workflows/
-│   ├── content-creation.md
-│   └── lead-nurturing.md
-└── docs/
-    ├── email-sequence.md
-    └── templates/
+User: Write 5 Instagram posts for skincare brand launch
+Agent: Generates platform-specific posts with hashtags and design requests
 ```
+
+### Quick Commands
+| Command | Action |
+|---------|--------|
+| `new lead: [name]` | Create lead + reminder |
+| `[name] status [stage]` | Update pipeline stage |
+| `content for [topic]` | Generate content plan |
+| `campaign [name]` | Create campaign brief |
+| `quick-add [text]` | Natural language lead creation |
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- ROADMAP -->
+## Roadmap
+
+#### Skills
+- [x] Campaign Manager skill
+- [x] Lead Tracker skill
+- [x] Social Post generator
+- [x] Email Nurture sequences
+- [x] Research skill
+- [x] Setup assistant
+
+#### Apps
+- [x] Kali CRM (SQLite-based pipeline tracking)
+
+#### Coming Soon
+- [ ] Canva MCP integration
+- [ ] Gmail API integration
+- [ ] LinkedIn MCP integration
+- [ ] Analytics dashboard
+- [ ] Client onboarding flow
+- [ ] Proposal templates
+
+See the [open issues](https://codeberg.org/tylerdotai/kali-marketing-agent/issues) for full list.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- CONTRIBUTING -->
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- LICENSE -->
+## License
+
+Distributed under the Unlicense License. See `LICENSE` for more information.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- CONTACT -->
+## Contact
+
+**Tyler Delano** — [@tylerdotai](https://twitter.com/tylerdotai)
+
+**Kali O'Campo** — [@itsmskali](https://linkedin.com/in/itsmskali)
+
+Project Link: https://codeberg.org/tylerdotai/kali-marketing-agent
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[contributors-shield]: https://img.shields.io/codeberg/contributors/tylerdotai/kali-marketing-agent?style=for-the-badge
+[contributors-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/members
+[forks-shield]: https://img.shields.io/codeberg/forks/tylerdotai/kali-marketing-agent?style=for-the-badge
+[forks-url]: https://codeberg.org/tylerdotai/kali-marketing-agent
+[stars-shield]: https://img.shields.io/codeberg/stars/tylerdotai/kali-marketing-agent?style=for-the-badge
+[stars-url]: https://codeberg.org/tylerdotai/kali-marketing-agent
+[issues-shield]: https://img.shields.io/codeberg/issues/tylerdotai/kali-marketing-agent?style=for-the-badge
+[issues-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/issues
+[license-shield]: https://img.shields.io/codeberg/license/tylerdotai/kali-marketing-agent?style=for-the-badge
+[license-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/blob/main/LICENSE
+
+[OpenClaw]: https://img.shields.io/badge/OpenClaw-000000?style=for-the-badge&logo=openclaw&logoColor=white
+[OpenClaw-url]: https://openclaw.ai
+[FastAPI]: https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white
+[FastAPI-url]: https://fastapi.tiangolo.com
+[SQLite]: https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white
+[SQLite-url]: https://sqlite.org
+[Canva]: https://img.shields.io/badge/Canva-00C4CC?style=for-the-badge&logo=canva&logoColor=white
+[Canva-url]: https://canva.com
