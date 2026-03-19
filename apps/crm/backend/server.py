@@ -30,22 +30,13 @@ from crm import (
 app = FastAPI(title="Kali's CRM", version="1.0.0")
 
 # Mount frontend static files (absolute path to this file's parent/../frontend)
-import os as _os
-_frontend_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'frontend')
-app.mount("/", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
+_frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend')
 
 # Get API key from environment (optional for local use)
 API_KEY = os.getenv("CRM_API_KEY", "local-dev-key")
 
 # API Key security
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-async def verify_api_key(api_key: str = Depends(api_key_header)):
-    """Verify API key if configured."""
-    if API_KEY and API_KEY != "local-dev-key":
-        if api_key != API_KEY:
-            raise HTTPException(status_code=401, detail="Invalid API key")
-    return True
 
 def verify_api_key(x_api_key: Optional[str] = Header(None)):
     """Verify API key if configured."""
@@ -109,23 +100,18 @@ async def health():
 @app.get("/.well-known/skill.md", include_in_schema=False)
 async def skill_md():
     """Serve the OpenClaw skill.md for agent discovery."""
-    try:
-        with open("backend/.well-known/skill.md", "r") as f:
-            content_skill = f.read()
-        return PlainTextResponse(content_skill, media_type="text/markdown")
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="skill.md not found")
-
-
-@app.get("/.well-known/skill.md", include_in_schema=False)
-async def skill_md():
-    """Serve the OpenClaw skill.md for agent discovery."""
-    try:
-        with open(".well-known/skill.md", "r") as f:
-            content = f.read()
-        return PlainTextResponse(content, media_type="text/markdown")
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="skill.md not found")
+    # Try multiple possible locations
+    paths = [
+        os.path.join(os.path.dirname(__file__), ".well-known", "skill.md"),
+        os.path.join(os.path.dirname(__file__), "..", ".well-known", "skill.md"),
+        ".well-known/skill.md"
+    ]
+    for p in paths:
+        if os.path.exists(p):
+            with open(p, "r") as f:
+                content = f.read()
+            return PlainTextResponse(content, media_type="text/markdown")
+    raise HTTPException(status_code=404, detail="skill.md not found")
 
 
 @app.get("/api/stats")
@@ -223,7 +209,7 @@ async def followups(days: int = 7):
 
 # Analytics endpoints
 @app.get("/api/analytics")
-async def analytics():
+async def analytics_data():
     """Get full analytics data."""
     return get_full_analytics()
 
@@ -241,7 +227,7 @@ async def sources():
 
 
 @app.get("/api/analytics/business")
-async def business_split():
+async def business_split_data():
     """Get business type split."""
     return get_business_split()
 
@@ -253,13 +239,13 @@ async def trends(days: int = 30):
 
 
 @app.get("/api/analytics/activity")
-async def activity_summary(days: int = 7):
+async def activity_summary_data(days: int = 7):
     """Get activity summary."""
     return get_activity_summary(days=days)
 
 
 @app.post("/api/quick-add")
-async def quick_add(quick: QuickAdd):
+async def quick_add_endpoint(quick: QuickAdd):
     result = quick_add_lead(quick.text)
     return result
 
@@ -267,38 +253,40 @@ async def quick_add(quick: QuickAdd):
 @app.get("/api/export")
 async def export_csv():
     """Export all leads as CSV"""
-    leads = get_all_leads()
+    leads_list = get_all_leads()
     
     csv_lines = ["ID,Name,Company,Email,Phone,Source,Stage,Business Type,Notes,Created"]
-    for lead in leads:
+    for lead in leads_list:
         csv_lines.append(
             f"{lead['id']},{lead['name']},{lead['company'] or ''},{lead['email'] or ''},"
             f"{lead['phone'] or ''},{lead['source'] or ''},{lead['stage']},"
             f"{lead['business_type']},{lead['notes'] or ''},{lead['created_at']}"
         )
     
-    return "\n".join(csv_lines)
+    return PlainTextResponse("\n".join(csv_lines), media_type="text/csv")
 
 
-# Serve frontend
-@app.get("/")
+# Serve frontend - MOUNT LAST TO AVOID ROUTE SHADOWING
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return FileResponse("frontend/index.html")
+    return FileResponse(os.path.join(_frontend_dir, "index.html"))
 
 
-@app.get("/analytics")
-async def analytics():
-    return FileResponse("frontend/analytics.html")
+@app.get("/analytics", response_class=HTMLResponse)
+async def analytics_page():
+    return FileResponse(os.path.join(_frontend_dir, "analytics.html"))
 
-
+# Specific JS/CSS routes to ensure they are served correctly
 @app.get("/app.js")
 async def js():
-    return FileResponse("frontend/app.js")
-
+    return FileResponse(os.path.join(_frontend_dir, "app.js"))
 
 @app.get("/app.css")
 async def css():
-    return FileResponse("frontend/app.css")
+    return FileResponse(os.path.join(_frontend_dir, "app.css"))
+
+# Mount the entire frontend directory as a fallback
+app.mount("/", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
 
 
 if __name__ == "__main__":
