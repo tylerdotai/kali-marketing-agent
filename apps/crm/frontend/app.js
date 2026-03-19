@@ -407,7 +407,7 @@ function handleSearch(value) {
     }, 300);
 }
 
-function clearSearch() {
+async function clearSearch() {
     document.getElementById('searchInput').value = '';
     document.getElementById('searchBar').classList.remove('active');
     currentLeads = await api('/leads');
