@@ -16,7 +16,8 @@ from crm import (
     init_db, add_lead, get_lead, get_all_leads, update_lead, delete_lead,
     update_stage, add_activity, get_activities, get_recent_activities,
     get_stats, get_upcoming_followups, quick_add_lead, STAGES, STAGE_DISPLAY,
-    DATABASE_PATH
+    DATABASE_PATH, get_full_analytics, get_conversion_rates, get_source_analysis,
+    get_business_split, get_trend_data, get_activity_summary
 )
 
 app = FastAPI(title="Kali's CRM", version="1.0.0")
@@ -166,6 +167,43 @@ async def followups(days: int = 7):
     return get_upcoming_followups(days=days)
 
 
+# Analytics endpoints
+@app.get("/api/analytics")
+async def analytics():
+    """Get full analytics data."""
+    return get_full_analytics()
+
+
+@app.get("/api/analytics/conversions")
+async def conversions():
+    """Get stage conversion rates."""
+    return get_conversion_rates()
+
+
+@app.get("/api/analytics/sources")
+async def sources():
+    """Get lead source analysis."""
+    return get_source_analysis()
+
+
+@app.get("/api/analytics/business")
+async def business_split():
+    """Get business type split."""
+    return get_business_split()
+
+
+@app.get("/api/analytics/trends")
+async def trends(days: int = 30):
+    """Get trend data."""
+    return get_trend_data(days=days)
+
+
+@app.get("/api/analytics/activity")
+async def activity_summary(days: int = 7):
+    """Get activity summary."""
+    return get_activity_summary(days=days)
+
+
 @app.post("/api/quick-add")
 async def quick_add(quick: QuickAdd):
     result = quick_add_lead(quick.text)
@@ -192,6 +230,11 @@ async def export_csv():
 @app.get("/")
 async def root():
     return FileResponse("frontend/index.html")
+
+
+@app.get("/analytics")
+async def analytics():
+    return FileResponse("frontend/analytics.html")
 
 
 @app.get("/app.js")

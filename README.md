@@ -191,12 +191,10 @@ Agent: Generates platform-specific posts with hashtags and design requests
 - [x] Gmail integration (via gog skill)
 - [x] Client onboarding flow
 - [x] Proposal templates
+- [x] Analytics dashboard
 
 #### Apps
-- [x] Kali CRM (SQLite-based pipeline tracking)
-
-#### Coming Soon
-- [ ] Analytics dashboard
+- [x] Kali CRM (SQLite-based pipeline tracking with analytics)
 
 See the [open issues](https://codeberg.org/tylerdotai/kali-marketing-agent/issues) for full list.
 

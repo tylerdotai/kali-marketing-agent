@@ -71,7 +71,13 @@
       "optional": []
     },
     {
-      "name": "linkedin",
+      "name": "analytics",
+      "path": "skills/analytics",
+      "description": "Analytics and reporting for lead pipeline and campaign performance",
+      "triggers": ["analytics", "report", "stats", "dashboard", "metrics"],
+      "requires": ["kali-crm"],
+      "optional": []
+    },
       "path": "skills/linkedin",
       "description": "Manage LinkedIn profiles and post content via browser automation",
       "triggers": ["linkedin", "post to linkedin", "linkedin content"],

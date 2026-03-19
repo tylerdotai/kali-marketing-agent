@@ -321,6 +321,152 @@ def quick_add_lead(text: str) -> Dict:
     return {"id": lead_id, "name": name, "company": company, "source": source}
 
 
+# Analytics Functions
+def get_conversion_rates() -> Dict:
+    """Calculate stage-to-stage conversion rates."""
+    with get_db() as db:
+        stage_counts = {}
+        for stage in STAGES:
+            count = db.execute(
+                "SELECT COUNT(*) FROM leads WHERE stage = ? AND deleted = 0", (stage,)
+            ).fetchone()[0]
+            stage_counts[stage] = count
+        
+        total = sum(stage_counts.values())
+        
+        # Calculate conversion rates
+        conversions = {}
+        for i, stage in enumerate(STAGES[:-2]):  # Exclude won/lost from rate calc
+            next_stage = STAGES[i + 1] if i + 1 < len(STAGES) - 2 else None
+            if next_stage and stage_counts[stage] > 0:
+                next_count = stage_counts[next_stage]
+                rate = (next_count / stage_counts[stage]) * 100
+                conversions[f"{stage}_to_{next_stage}"] = round(rate, 1)
+        
+        return {
+            "stage_counts": stage_counts,
+            "total_leads": total,
+            "conversion_rates": conversions,
+            "win_rate": round(stage_counts["won"] / total * 100, 1) if total > 0 else 0
+        }
+
+
+def get_source_analysis() -> List[Dict]:
+    """Analyze leads by source."""
+    with get_db() as db:
+        sources = db.execute("""
+            SELECT 
+                COALESCE(source, 'Unknown') as source,
+                COUNT(*) as count,
+                SUM(CASE WHEN stage = 'won' THEN 1 ELSE 0 END) as wins,
+                SUM(CASE WHEN stage IN ('qualified', 'proposal', 'negotiation') THEN 1 ELSE 0 END) as in_progress,
+                SUM(estimated_value) as total_value
+            FROM leads 
+            WHERE deleted = 0
+            GROUP BY source
+            ORDER BY count DESC
+        """).fetchall()
+        
+        return [dict(row) for row in sources]
+
+
+def get_business_split() -> Dict:
+    """Get leads and value split by business type."""
+    with get_db() as db:
+        result = {}
+        for biz in ["gnb", "salthaus"]:
+            row = db.execute("""
+                SELECT 
+                    COUNT(*) as count,
+                    SUM(estimated_value) as pipeline_value,
+                    SUM(CASE WHEN stage = 'won' THEN estimated_value ELSE 0 END) as won_value
+                FROM leads 
+                WHERE business_type = ? AND deleted = 0
+            """, (biz,)).fetchone()
+            
+            result[biz] = {
+                "count": row[0] or 0,
+                "pipeline_value": row[1] or 0,
+                "won_value": row[2] or 0
+            }
+        
+        return result
+
+
+def get_trend_data(days: int = 30) -> Dict:
+    """Get lead creation trends over time."""
+    cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+    
+    with get_db() as db:
+        # Leads created per day
+        daily = db.execute("""
+            SELECT 
+                DATE(created_at) as date,
+                COUNT(*) as count
+            FROM leads
+            WHERE created_at > ? AND deleted = 0
+            GROUP BY DATE(created_at)
+            ORDER BY date
+        """, (cutoff,)).fetchall()
+        
+        # Stage progression over time
+        stages_over_time = {}
+        for stage in STAGES:
+            rows = db.execute("""
+                SELECT 
+                    DATE(created_at) as date,
+                    COUNT(*) as count
+                FROM leads
+                WHERE created_at > ? AND stage = ? AND deleted = 0
+                GROUP BY DATE(created_at)
+                ORDER BY date
+            """, (cutoff, stage)).fetchall()
+            stages_over_time[stage] = [dict(row) for row in rows]
+        
+        return {
+            "daily_leads": [dict(row) for row in daily],
+            "stages_over_time": stages_over_time
+        }
+
+
+def get_activity_summary(days: int = 7) -> Dict:
+    """Get activity summary."""
+    cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+    
+    with get_db() as db:
+        # Activity by type
+        by_type = db.execute("""
+            SELECT 
+                activity_type,
+                COUNT(*) as count
+            FROM activities
+            WHERE created_at > ?
+            GROUP BY activity_type
+            ORDER BY count DESC
+        """, (cutoff,)).fetchall()
+        
+        # Total activities
+        total = db.execute(
+            "SELECT COUNT(*) FROM activities WHERE created_at > ?", (cutoff,)
+        ).fetchone()[0]
+        
+        return {
+            "total": total,
+            "by_type": [dict(row) for row in by_type]
+        }
+
+
+def get_full_analytics() -> Dict:
+    """Get all analytics data."""
+    return {
+        "conversion_rates": get_conversion_rates(),
+        "sources": get_source_analysis(),
+        "business_split": get_business_split(),
+        "trends": get_trend_data(),
+        "activity_summary": get_activity_summary()
+    }
+
+
 if __name__ == "__main__":
     init_db()
     print("Database initialized!")
