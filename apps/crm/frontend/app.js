@@ -1,18 +1,43 @@
-// Kali's CRM - Frontend JavaScript
+// Kali CRM - Premium Frontend JavaScript
 
 const API = '/api';
 let currentLeads = [];
 let currentDetailLead = null;
+let currentFilters = { search: '', business: '', source: '' };
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadStats();
     loadLeads();
     loadActivities();
+    loadSourceFilters();
+    setupEventListeners();
     refreshData();
 });
 
-// Refresh data every 30 seconds
+function setupEventListeners() {
+    document.getElementById('addLeadBtn').addEventListener('click', () => showAddModal());
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        document.getElementById('searchInput').focus();
+    });
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        currentFilters.search = e.target.value;
+        document.getElementById('clearSearch').style.display = e.target.value ? 'flex' : 'none';
+        loadLeads();
+    });
+    document.getElementById('clearSearch').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+        currentFilters.search = '';
+        document.getElementById('clearSearch').style.display = 'none';
+        loadLeads();
+    });
+    document.getElementById('filterBusiness').addEventListener('change', (e) => {
+        currentFilters.business = e.target.value;
+        loadLeads();
+    });
+    document.getElementById('filterSource').addEventListener('change', () => loadLeads());
+}
+
 function refreshData() {
     setInterval(() => {
         loadStats();
@@ -40,41 +65,57 @@ async function loadStats() {
     const stats = await api('/stats');
     if (!stats) return;
     
-    document.getElementById('totalLeads').textContent = stats.total_leads;
-    document.getElementById('pipelineValue').textContent = '$' + (stats.pipeline_value || 0).toLocaleString();
-    document.getElementById('wonValue').textContent = '$' + (stats.won_value || 0).toLocaleString();
-    document.getElementById('recentActivity').textContent = stats.recent_activities;
+    document.getElementById('totalLeadsHeader').textContent = `${stats.total_leads} lead${stats.total_leads !== 1 ? 's' : ''}`;
+    document.getElementById('statTotal').textContent = stats.total_leads;
+    document.getElementById('statPipeline').textContent = '$' + formatNumber(stats.pipeline_value || 0);
+    document.getElementById('statWon').textContent = '$' + formatNumber(stats.won_value || 0);
+    document.getElementById('statActivities').textContent = stats.recent_activities;
 }
 
 // Load Leads
 async function loadLeads() {
-    const filter = document.getElementById('businessFilter').value;
-    currentLeads = await api(`/leads${filter ? '?business_type=' + filter : ''}`);
+    const params = new URLSearchParams();
+    if (currentFilters.business) params.append('business_type', currentFilters.business);
+    if (currentFilters.source) params.append('source', currentFilters.source);
+    
+    const query = params.toString();
+    currentLeads = await api(`/leads${query ? '?' + query : ''}`);
     renderPipeline();
 }
 
-// Load Activities
-async function loadActivities() {
-    const activities = await api('/activities?days=7');
-    if (!activities) return;
-    renderActivities(activities);
+function loadSourceFilters() {
+    // This would ideally come from the API, but for now we'll populate dynamically
+    const select = document.getElementById('filterSource');
+    // Sources will be populated as leads are loaded
 }
 
 // Render Pipeline
 function renderPipeline() {
     const stages = [
-        { id: 'new', name: '🆕 New' },
-        { id: 'contacted', name: '📧 Contacted' },
-        { id: 'qualified', name: '✅ Qualified' },
-        { id: 'proposal', name: '📄 Proposal' },
-        { id: 'negotiation', name: '🤝 Negotiation' },
-        { id: 'won', name: '🎉 Won' },
-        { id: 'lost', name: '❌ Lost' }
+        { id: 'new', name: 'New' },
+        { id: 'contacted', name: 'Contacted' },
+        { id: 'qualified', name: 'Qualified' },
+        { id: 'proposal', name: 'Proposal' },
+        { id: 'negotiation', name: 'Negotiation' },
+        { id: 'won', name: 'Won' },
+        { id: 'lost', name: 'Lost' }
     ];
+    
+    // Filter by search if set
+    let filteredLeads = currentLeads || [];
+    if (currentFilters.search) {
+        const search = currentFilters.search.toLowerCase();
+        filteredLeads = filteredLeads.filter(l => 
+            (l.name && l.name.toLowerCase().includes(search)) ||
+            (l.company && l.company.toLowerCase().includes(search)) ||
+            (l.email && l.email.toLowerCase().includes(search)) ||
+            (l.notes && l.notes.toLowerCase().includes(search))
+        );
+    }
     
     const pipeline = document.getElementById('pipeline');
     pipeline.innerHTML = stages.map(stage => {
-        const stageLeads = currentLeads.filter(l => l.stage === stage.id);
+        const stageLeads = filteredLeads.filter(l => l.stage === stage.id);
         return `
             <div class="pipeline-stage">
                 <div class="stage-header">
@@ -89,43 +130,63 @@ function renderPipeline() {
     }).join('');
 }
 
-// Render Lead Card
 function renderLeadCard(lead) {
-    const source = lead.source ? `<span class="lead-source">${lead.source}</span>` : '';
-    const value = lead.estimated_value ? `$${lead.estimated_value.toLocaleString()}` : '';
-    const businessBadge = `<span class="business-badge ${lead.business_type}">${lead.business_type.toUpperCase()}</span>`;
+    const source = lead.source ? `<span class="lead-source">${escapeHtml(lead.source)}</span>` : '';
+    const value = lead.estimated_value ? `$${formatNumber(lead.estimated_value)}` : '';
+    const businessLabel = lead.business_type === 'gnb' ? 'GNB' : 'SaltHaus';
     
     return `
-        <div class="lead-card ${lead.business_type} ${lead.stage}" onclick="showLeadDetail(${lead.id})">
-            <div class="lead-name">${escapeHtml(lead.name)}</div>
-            ${lead.company ? `<div class="lead-company">${escapeHtml(lead.company)}</div>` : ''}
-            <div class="lead-meta">
-                ${source || businessBadge}
+        <div class="lead-card" onclick="showLeadDetail(${lead.id})">
+            <div class="lead-card-header">
+                <div>
+                    <div class="leadName">${escapeHtml(lead.name)}</div>
+                    ${lead.company ? `<div class="lead-company">${escapeHtml(lead.company)}</div>` : ''}
+                </div>
                 ${value ? `<span class="lead-value">${value}</span>` : ''}
+            </div>
+            <div class="lead-meta">
+                ${source ? `<span class="lead-badge">${escapeHtml(lead.source)}</span>` : ''}
+                <span class="lead-badge ${lead.business_type}">${businessLabel}</span>
             </div>
         </div>
     `;
 }
 
-// Render Activities
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+    return num.toString();
+}
+
+// Load Activities
+async function loadActivities() {
+    const activities = await api('/activities?days=7');
+    if (!activities) return;
+    renderActivities(activities.slice(0, 10));
+}
+
 function renderActivities(activities) {
     const list = document.getElementById('activityList');
     
     if (activities.length === 0) {
-        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div>No recent activity</div>';
+        list.innerHTML = '<div class="empty-state"><p>No recent activity</p></div>';
         return;
     }
     
     list.innerHTML = activities.map(act => {
         const icon = getActivityIcon(act.activity_type);
         const time = formatTime(act.created_at);
+        const leadInfo = act.lead_name ? `<strong>${escapeHtml(act.lead_name)}</strong>` : '';
+        if (act.lead_company) leadInfo += ` <span style="color: var(--text-muted)">@ ${escapeHtml(act.lead_company)}</span>`;
+        
         return `
             <div class="activity-item">
                 <div class="activity-icon">${icon}</div>
                 <div class="activity-content">
-                    <div class="activity-text">${escapeHtml(act.description || act.activity_type)}</div>
-                    ${act.lead_name ? `<div class="activity-lead">${escapeHtml(act.lead_name)}${act.lead_company ? ' @ ' + escapeHtml(act.lead_company) : ''}</div>` : ''}
-                    <div class="activity-time">${time}</div>
+                    <div class="activity-text">${leadInfo} <span style="color: var(--text-muted)">- ${escapeHtml(act.description || act.activity_type)}</span></div>
+                    <div class="activity-meta">
+                        <span class="activity-time">${time}</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -134,20 +195,19 @@ function renderActivities(activities) {
 
 function getActivityIcon(type) {
     const icons = {
-        'created': '➕',
-        'stage_change': '🔄',
-        'email': '📧',
-        'call': '📞',
-        'meeting': '🤝',
-        'note': '📝',
-        'task': '✅'
+        'created': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+        'stage_change': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+        'email': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+        'call': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+        'meeting': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+        'note': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
     };
-    return icons[type] || '📌';
+    return icons[type] || '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>';
 }
 
 // Modal Functions
 function showAddModal(lead = null) {
-    document.getElementById('modalTitle').textContent = lead ? 'Edit Lead' : 'Add New Lead';
+    document.getElementById('modalTitle').textContent = lead ? 'Edit Lead' : 'Add Lead';
     document.getElementById('leadId').value = lead?.id || '';
     document.getElementById('leadName').value = lead?.name || '';
     document.getElementById('leadCompany').value = lead?.company || '';
@@ -182,43 +242,14 @@ async function saveLead(event) {
     };
     
     if (id) {
-        await api(`/leads/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data)
-        });
+        await api(`/leads/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+        showToast('Lead updated', 'success');
     } else {
-        await api('/leads', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
+        await api('/leads', { method: 'POST', body: JSON.stringify(data) });
+        showToast('Lead created', 'success');
     }
     
     closeModal();
-    loadLeads();
-    loadStats();
-}
-
-function showQuickAdd() {
-    document.getElementById('quickAddText').value = '';
-    document.getElementById('quickAddModal').classList.add('active');
-    document.getElementById('quickAddText').focus();
-}
-
-function closeQuickAdd() {
-    document.getElementById('quickAddModal').classList.remove('active');
-}
-
-async function doQuickAdd(event) {
-    event.preventDefault();
-    const text = document.getElementById('quickAddText').value;
-    if (!text.trim()) return;
-    
-    await api('/quick-add', {
-        method: 'POST',
-        body: JSON.stringify({ text })
-    });
-    
-    closeQuickAdd();
     loadLeads();
     loadStats();
 }
@@ -231,9 +262,11 @@ async function showLeadDetail(id) {
     currentDetailLead = lead;
     const activities = await api(`/leads/${id}/activities`);
     
-    const value = lead.estimated_value ? `$${lead.estimated_value.toLocaleString()}` : '—';
+    const value = lead.estimated_value ? `$${formatNumber(lead.estimated_value)}` : '—';
     const followup = lead.next_followup ? formatDate(lead.next_followup) : '—';
     const created = formatDate(lead.created_at);
+    const lastContact = lead.last_contacted ? formatDate(lead.last_contacted) : 'Never';
+    const stageLabel = { new: 'New', contacted: 'Contacted', qualified: 'Qualified', proposal: 'Proposal', negotiation: 'Negotiation', won: 'Won', lost: 'Lost' }[lead.stage] || lead.stage;
     
     document.getElementById('detailTitle').textContent = lead.name;
     document.getElementById('detailContent').innerHTML = `
@@ -243,19 +276,25 @@ async function showLeadDetail(id) {
                 <div class="detail-company">${escapeHtml(lead.company || 'No company')}</div>
             </div>
             <div class="detail-actions">
-                <button class="btn btn-secondary btn-small" onclick="editLead()">Edit</button>
-                <button class="btn btn-danger btn-small" onclick="deleteCurrentLead()">Delete</button>
+                <button class="btn btn-secondary" onclick="editLead()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit
+                </button>
+                <button class="btn btn-danger" onclick="deleteCurrentLead()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Delete
+                </button>
             </div>
         </div>
         
         <div class="detail-grid">
             <div class="detail-item">
                 <label>Email</label>
-                <span>${escapeHtml(lead.email || '—')}</span>
+                <span>${lead.email ? `<a href="mailto:${escapeHtml(lead.email)}" style="color: var(--accent)">${escapeHtml(lead.email)}</a>` : '—'}</span>
             </div>
             <div class="detail-item">
                 <label>Phone</label>
-                <span>${escapeHtml(lead.phone || '—')}</span>
+                <span>${lead.phone ? `<a href="tel:${escapeHtml(lead.phone)}" style="color: var(--accent)">${escapeHtml(lead.phone)}</a>` : '—'}</span>
             </div>
             <div class="detail-item">
                 <label>Source</label>
@@ -263,14 +302,14 @@ async function showLeadDetail(id) {
             </div>
             <div class="detail-item">
                 <label>Business</label>
-                <span class="business-badge ${lead.business_type}">${lead.business_type.toUpperCase()}</span>
+                <span class="lead-badge ${lead.business_type}">${lead.business_type === 'gnb' ? 'GNB Global' : 'SaltHaus'}</span>
             </div>
             <div class="detail-item">
                 <label>Estimated Value</label>
-                <span>${value}</span>
+                <span style="color: var(--success); font-weight: 600;">${value}</span>
             </div>
             <div class="detail-item">
-                <label>Next Follow-up</label>
+                <label>Follow-up</label>
                 <span>${followup}</span>
             </div>
             <div class="detail-item">
@@ -278,16 +317,16 @@ async function showLeadDetail(id) {
                 <span>${created}</span>
             </div>
             <div class="detail-item">
-                <label>Last Contacted</label>
-                <span>${lead.last_contacted ? formatDate(lead.last_contacted) : 'Never'}</span>
+                <label>Last Contact</label>
+                <span>${lastContact}</span>
             </div>
         </div>
         
         ${lead.notes ? `
         <div class="detail-section">
-                <h3>Notes</h3>
-                <p>${escapeHtml(lead.notes)}</p>
-            </div>
+            <h3>Notes</h3>
+            <div class="notes-content">${escapeHtml(lead.notes)}</div>
+        </div>
         ` : ''}
         
         <div class="detail-section">
@@ -295,7 +334,6 @@ async function showLeadDetail(id) {
             <div class="stage-select">
                 ${['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'].map(s => `
                     <button class="stage-btn ${lead.stage === s ? 'active' : ''}" onclick="moveToStage('${s}')">
-                        ${s === 'new' ? '🆕' : s === 'contacted' ? '📧' : s === 'qualified' ? '✅' : s === 'proposal' ? '📄' : s === 'negotiation' ? '🤝' : s === 'won' ? '🎉' : '❌'}
                         ${s.charAt(0).toUpperCase() + s.slice(1)}
                     </button>
                 `).join('')}
@@ -304,11 +342,11 @@ async function showLeadDetail(id) {
         
         <div class="detail-section">
             <h3>Log Activity</h3>
-            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <button class="btn btn-secondary btn-small" onclick="logActivity('email', 'Sent email')">📧 Email</button>
-                <button class="btn btn-secondary btn-small" onclick="logActivity('call', 'Phone call')">📞 Call</button>
-                <button class="btn btn-secondary btn-small" onclick="logActivity('meeting', 'Meeting')">🤝 Meeting</button>
-                <button class="btn btn-secondary btn-small" onclick="logActivity('note', 'Added note')">📝 Note</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="openQuickActivity()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Activity
+                </button>
             </div>
         </div>
         
@@ -323,7 +361,7 @@ async function showLeadDetail(id) {
                             <div class="activity-time">${formatTime(a.created_at)}</div>
                         </div>
                     </div>
-                `).join('') : '<p style="color: var(--gray-500);">No activity yet</p>'}
+                `).join('') : '<p style="color: var(--text-muted); padding: 12px;">No activity yet</p>'}
             </div>
         </div>
     `;
@@ -351,6 +389,7 @@ async function deleteCurrentLead() {
     closeDetailModal();
     loadLeads();
     loadStats();
+    showToast('Lead deleted', 'success');
 }
 
 async function moveToStage(stage) {
@@ -359,16 +398,38 @@ async function moveToStage(stage) {
     showLeadDetail(currentDetailLead.id);
     loadLeads();
     loadStats();
+    showToast('Stage updated', 'success');
 }
 
-async function logActivity(type, description) {
+// Quick Activity
+function openQuickActivity() {
+    document.getElementById('quickActivityNote').value = '';
+    document.getElementById('quickActivityModal').classList.add('active');
+}
+
+function closeQuickActivity() {
+    document.getElementById('quickActivityModal').classList.remove('active');
+}
+
+async function logQuickActivity(type, defaultDesc) {
     if (!currentDetailLead) return;
+    const note = document.getElementById('quickActivityNote').value || defaultDesc;
     await api(`/leads/${currentDetailLead.id}/activity`, {
         method: 'POST',
-        body: JSON.stringify({ activity_type: type, description })
+        body: JSON.stringify({ activity_type: type, description: note })
     });
+    closeQuickActivity();
     showLeadDetail(currentDetailLead.id);
     loadActivities();
+    showToast('Activity logged', 'success');
+}
+
+// Toast
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 // Utilities
@@ -403,6 +464,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeModal();
         closeDetailModal();
-        closeQuickAdd();
+        closeQuickActivity();
     }
 });
