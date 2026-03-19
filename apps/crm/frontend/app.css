@@ -578,29 +578,131 @@ form {
     margin-bottom: 12px;
 }
 
-/* Responsive */
+/* Mobile Optimizations */
 @media (max-width: 768px) {
+    /* Header */
     .header {
         flex-direction: column;
-        align-items: start;
-        gap: 16px;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
     }
     
+    .header-left h1 {
+        font-size: 20px;
+    }
+    
+    .header-right {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .header-right .btn {
+        flex: 1;
+        padding: 12px 16px;
+        font-size: 14px;
+        text-align: center;
+    }
+    
+    /* Stats Bar */
     .stats-bar {
-        gap: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 16px;
+        margin: 0 -20px;
+        padding: 16px;
+        border-radius: 0;
     }
     
     .stat {
-        flex: 1;
-        min-width: 100px;
+        text-align: center;
+        padding: 12px;
+        background: var(--gray-50);
+        border-radius: 8px;
     }
     
+    .stat-value {
+        font-size: 24px;
+    }
+    
+    .filter-stat {
+        grid-column: span 2;
+    }
+    
+    .filter-stat select {
+        width: 100%;
+    }
+    
+    /* Pipeline */
     .pipeline {
         flex-direction: column;
+        gap: 12px;
+        padding: 0;
+        margin: 0 -20px;
     }
     
     .pipeline-stage {
         min-width: 100%;
+        border-radius: 0;
+        padding: 16px;
+        background: var(--gray-50);
+    }
+    
+    .stage-header {
+        position: sticky;
+        top: 0;
+        background: var(--gray-100);
+        padding: 8px 12px;
+        margin: -16px -16px 12px -16px;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .stage-leads {
+        min-height: auto;
+    }
+    
+    /* Lead Cards */
+    .lead-card {
+        padding: 14px;
+    }
+    
+    .lead-name {
+        font-size: 15px;
+    }
+    
+    .lead-meta {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    /* Activity Section */
+    .activity-section {
+        margin: 0 -20px;
+        padding: 16px;
+        border-radius: 0;
+    }
+    
+    /* Forms */
+    .modal-content {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .modal-header {
+        padding: 16px;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+    }
+    
+    form {
+        padding: 16px;
     }
     
     .form-row {
@@ -608,7 +710,127 @@ form {
         gap: 0;
     }
     
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 14px 12px;
+        font-size: 16px; /* Prevents iOS zoom */
+    }
+    
+    .form-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        margin: 0 -20px;
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+    }
+    
+    /* Detail Modal */
     .detail-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .detail-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .detail-actions {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .detail-actions .btn {
+        flex: 1;
+        padding: 12px;
+    }
+    
+    .stage-select {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .stage-btn {
+        padding: 10px 14px;
+        font-size: 12px;
+    }
+    
+    /* Activity Buttons */
+    .detail-section button {
+        flex: 1;
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+    
+    /* Analytics Grid */
+    .analytics-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin: 0 -20px;
+        padding: 16px;
+    }
+    
+    .analytics-card {
+        padding: 16px;
+        border-radius: 8px;
+    }
+    
+    .full-width {
+        grid-column: span 1;
+    }
+    
+    /* Business Split */
+    .business-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+    button,
+    .btn,
+    .stage-btn,
+    .lead-card {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Remove hover effects on touch */
+    .lead-card:hover {
+        transform: none;
+    }
+    
+    /* Larger touch targets for forms */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Landscape phone */
+@media (max-width: 768px) and (orientation: landscape) {
+    .stats-bar {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .filter-stat {
+        grid-column: span 1;
     }
 }
