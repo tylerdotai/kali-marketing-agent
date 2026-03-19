@@ -1,46 +1,31 @@
 /**
  * Kali CRM - Agent-First State Management
- * 
  * The Manifest is the single source of truth for UI state.
- * The agent reads it, modifies it via API, and the UI re-renders.
  */
 
 const Manifest = {
-    // State tree - this is what controls the entire UI
     state: {
         version: '1.0.0',
         lastUpdated: null,
-        
-        // Canvas layout
         canvas: {
-            activeView: 'pipeline', // pipeline | analytics | settings
+            activeView: 'pipeline',
             filters: { search: '', business: '', source: '' },
             selectedLeadId: null,
             highlightedElement: null
         },
-        
-        // Draft changes (agent-proposed, not yet committed)
         drafts: {},
-        
-        // Undo stack
         undoStack: [],
-        
-        // Agent session
         agent: {
             thinking: false,
-            thoughts: [], // Array of {id, text, timestamp, type}
+            thoughts: [],
             lastAction: null
         }
     },
-
-    // Subscribe to state changes
     listeners: [],
     
     subscribe(fn) {
         this.listeners.push(fn);
-        return () => {
-            this.listeners = this.listeners.filter(l => l !== fn);
-        };
+        return () => { this.listeners = this.listeners.filter(l => l !== fn); };
     },
     
     notify() {
@@ -48,22 +33,13 @@ const Manifest = {
         this.listeners.forEach(fn => fn(this.state));
     },
     
-    // Get current state
-    getState() {
-        return this.state;
-    },
+    getState() { return this.state; },
     
-    // Update state and notify
     setState(updates) {
-        const prevState = JSON.stringify(this.state);
-        
-        // Deep merge updates
+        const prev = JSON.stringify(this.state);
         this.deepMerge(this.state, updates);
-        
-        // Push to undo stack
-        this.pushUndo(prevState);
-        
-        // Notify subscribers
+        this.state.undoStack.push({ state: JSON.parse(prev), timestamp: Date.now() });
+        if (this.state.undoStack.length > 50) this.state.undoStack.shift();
         this.notify();
     },
     
@@ -77,18 +53,6 @@ const Manifest = {
         }
     },
     
-    // Undo stack
-    pushUndo(state) {
-        this.state.undoStack.push({
-            state: JSON.parse(state),
-            timestamp: Date.now()
-        });
-        // Keep max 50 undo states
-        if (this.state.undoStack.length > 50) {
-            this.state.undoStack.shift();
-        }
-    },
-    
     undo() {
         if (this.state.undoStack.length === 0) return null;
         const prev = this.state.undoStack.pop();
@@ -97,14 +61,8 @@ const Manifest = {
         return prev.state;
     },
     
-    // Draft management
     addDraft(key, value, agentId = 'agent') {
-        this.state.drafts[key] = {
-            value,
-            agentId,
-            timestamp: Date.now(),
-            committed: false
-        };
+        this.state.drafts[key] = { value, agentId, timestamp: Date.now(), committed: false };
         this.notify();
     },
     
@@ -122,37 +80,20 @@ const Manifest = {
     },
     
     getDrafts() {
-        return Object.entries(this.state.drafts).map(([key, draft]) => ({
-            key,
-            ...draft
-        }));
+        return Object.entries(this.state.drafts).map(([key, draft]) => ({ key, ...draft }));
     },
     
-    // Agent thoughts
     addThought(text, type = 'thinking') {
-        const thought = {
-            id: Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-            text,
-            type, // 'thinking' | 'action' | 'result' | 'error'
-            timestamp: Date.now()
-        };
+        const thought = { id: Date.now() + '-' + Math.random().toString(36).substr(2, 9), text, type, timestamp: Date.now() };
         this.state.agent.thoughts.push(thought);
-        
-        // Keep max 20 thoughts
-        if (this.state.agent.thoughts.length > 20) {
-            this.state.agent.thoughts.shift();
-        }
-        
+        if (this.state.agent.thoughts.length > 20) this.state.agent.thoughts.shift();
         this.notify();
         return thought.id;
     },
     
     completeThought(id) {
-        const thought = this.state.agent.thoughts.find(t => t.id === id);
-        if (thought) {
-            thought.completed = true;
-            this.notify();
-        }
+        const t = this.state.agent.thoughts.find(t => t.id === id);
+        if (t) { t.completed = true; this.notify(); }
     },
     
     clearThoughts() {
@@ -160,11 +101,9 @@ const Manifest = {
         this.notify();
     },
     
-    // Highlight element (for visual telemetry)
     highlightElement(elementId, duration = 2000) {
         this.state.canvas.highlightedElement = elementId;
         this.notify();
-        
         setTimeout(() => {
             if (this.state.canvas.highlightedElement === elementId) {
                 this.state.canvas.highlightedElement = null;
@@ -173,7 +112,6 @@ const Manifest = {
         }, duration);
     },
     
-    // Navigation
     setView(view) {
         this.state.canvas.activeView = view;
         this.notify();
@@ -185,5 +123,4 @@ const Manifest = {
     }
 };
 
-// Export for use
 window.Manifest = Manifest;

@@ -1,14 +1,5 @@
-/* Agent Sidecar - The Command Center */
+/* Agent Sidecar - Command Center */
 
-.sidecar {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background: var(--bg-secondary);
-    border-left: 1px solid var(--border);
-}
-
-/* Header */
 .sidecar-header {
     display: flex;
     justify-content: space-between;
@@ -27,14 +18,9 @@
     color: var(--text-primary);
 }
 
-.sidecar-title svg {
-    color: var(--accent);
-}
+.sidecar-title svg { color: var(--accent); }
 
-.sidecar-actions {
-    display: flex;
-    gap: 4px;
-}
+.sidecar-actions { display: flex; gap: 4px; }
 
 .sidecar-btn {
     width: 32px;
@@ -55,10 +41,7 @@
     color: var(--text-primary);
 }
 
-.sidecar-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
+.sidecar-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* Thoughts */
 .sidecar-thoughts {
@@ -81,10 +64,7 @@
     font-size: 13px;
 }
 
-.thought-icon {
-    flex-shrink: 0;
-    opacity: 0.6;
-}
+.thought-icon { flex-shrink: 0; opacity: 0.6; }
 
 .thought {
     padding: 10px 12px;
@@ -123,9 +103,7 @@
     color: var(--danger);
 }
 
-.thought.completed {
-    opacity: 0.7;
-}
+.thought.completed { opacity: 0.7; }
 
 .thought-header {
     display: flex;
@@ -134,28 +112,14 @@
     margin-bottom: 6px;
 }
 
-.thought-type {
-    opacity: 0.7;
-}
+.thought-type { opacity: 0.7; }
 
 .thought-time {
     font-size: 11px;
     color: var(--text-muted);
 }
 
-.thought-text {
-    color: inherit;
-}
-
-.thought-text a {
-    color: var(--accent);
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.thought-text a:hover {
-    color: var(--accent-hover);
-}
+.thought-text { color: inherit; white-space: pre-wrap; }
 
 /* Drafts */
 .sidecar-drafts {
@@ -209,16 +173,9 @@
     gap: 10px;
 }
 
-.draft-content {
-    flex: 1;
-    font-size: 12px;
-}
+.draft-content { flex: 1; font-size: 12px; }
 
-.draft-content strong {
-    color: var(--warning);
-    display: block;
-    margin-bottom: 2px;
-}
+.draft-content strong { color: var(--warning); display: block; margin-bottom: 2px; }
 
 .draft-value {
     color: var(--text-secondary);
@@ -226,13 +183,9 @@
     font-size: 11px;
 }
 
-.draft-actions {
-    display: flex;
-    gap: 4px;
-}
+.draft-actions { display: flex; gap: 4px; }
 
-.draft-accept,
-.draft-reject {
+.draft-accept, .draft-reject {
     width: 28px;
     height: 28px;
     border: none;
@@ -249,9 +202,7 @@
     color: white;
 }
 
-.draft-accept:hover {
-    background: #16a34a;
-}
+.draft-accept:hover { background: #16a34a; }
 
 .draft-reject {
     background: transparent;
@@ -284,13 +235,8 @@
     outline: none;
 }
 
-.sidecar-input input:focus {
-    border-color: var(--accent);
-}
-
-.sidecar-input input::placeholder {
-    color: var(--text-muted);
-}
+.sidecar-input input:focus { border-color: var(--accent); }
+.sidecar-input input::placeholder { color: var(--text-muted); }
 
 .sidecar-send {
     width: 40px;
@@ -312,45 +258,21 @@
     transform: scale(1.05);
 }
 
-/* Highlight animation for visual telemetry */
+/* Scrollbar */
+.sidecar-thoughts::-webkit-scrollbar { width: 4px; }
+.sidecar-thoughts::-webkit-scrollbar-track { background: transparent; }
+.sidecar-thoughts::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Highlight animation */
 @keyframes pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
     50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
 }
 
-.highlight-element {
-    animation: pulse 0.5s ease-in-out 3;
-}
+.highlighted { animation: pulse 0.5s ease-in-out 3; }
 
-/* Draft state highlighting for leads */
+/* Lead card draft state */
 .lead-card.draft {
     border: 2px solid var(--warning);
     background: rgba(245, 158, 11, 0.05);
-}
-
-.lead-card.draft::after {
-    content: 'Pending';
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: var(--warning);
-    color: var(--bg-primary);
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 600;
-}
-
-/* Scrollbar */
-.sidecar-thoughts::-webkit-scrollbar {
-    width: 4px;
-}
-
-.sidecar-thoughts::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidecar-thoughts::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 2px;
 }

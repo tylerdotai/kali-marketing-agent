@@ -12,7 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- App Layout: Nav | Canvas | Sidecar -->
     <div class="app-layout">
+        
         <!-- Left: Navigation -->
         <nav class="nav-sidebar">
             <div class="nav-logo">
@@ -52,8 +54,8 @@
             </div>
         </nav>
 
-        <!-- Center: Main Content (Canvas) -->
-        <main class="main-canvas" id="mainCanvas">
+        <!-- Center: Main Canvas -->
+        <main class="main-canvas">
             <!-- Header -->
             <header class="header">
                 <div class="header-left">
@@ -110,15 +112,65 @@
                 </select>
             </div>
 
-            <!-- Pipeline (default view) -->
+            <!-- Pipeline View -->
             <div class="pipeline" id="pipelineView"></div>
 
-            <!-- Analytics (hidden by default) -->
+            <!-- Analytics View -->
             <div class="analytics-view" id="analyticsView" style="display:none"></div>
         </main>
 
         <!-- Right: Agent Sidecar -->
-        <aside class="agent-sidecar" id="agentSidecar"></aside>
+        <aside class="agent-sidecar" id="agentSidecar">
+            <div class="sidecar-header">
+                <div class="sidecar-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>Agent</span>
+                </div>
+                <div class="sidecar-actions">
+                    <button class="sidecar-btn" id="undoBtn" title="Undo (Ctrl+Z)" onclick="handleUndo()" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 7v6h6"/>
+                            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                        </svg>
+                    </button>
+                    <button class="sidecar-btn" id="clearBtn" title="Clear" onclick="clearThoughts()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidecar-thoughts" id="sidecarThoughts">
+                <div class="thought-placeholder">
+                    <span class="thought-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4"/>
+                            <path d="M12 8h.01"/>
+                        </svg>
+                    </span>
+                    <span>Agent ready. Type a command.</span>
+                </div>
+            </div>
+            
+            <div class="sidecar-drafts" id="sidecarDrafts"></div>
+            
+            <div class="sidecar-input">
+                <input type="text" id="sidecarInput" placeholder="Command or describe what you need..." onkeypress="handleSidecarKeypress(event)">
+                <button class="sidecar-send" onclick="sendSidecarCommand()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
     </div>
 
     <!-- Lead Modal -->
@@ -201,8 +253,8 @@
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
+    <!-- Scripts -->
     <script src="manifest.js"></script>
     <script src="app.js"></script>
-    <script src="agent-sidecar.js"></script>
 </body>
 </html>
