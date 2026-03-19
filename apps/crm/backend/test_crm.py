@@ -480,3 +480,21 @@ class TestUncovered:
         
         assert "Jane Doe" in result["name"]
         # Source may or may not be captured depending on pattern match
+    
+    def test_main_block(self, isolated_crm):
+        """Test the main() CLI entry point."""
+        import crm
+        crm_module, db = isolated_crm
+        
+        # Test main() runs without error
+        import io
+        import sys
+        old_stdout = sys.stdout
+        sys.stdout = io.StringIO()
+        try:
+            crm_module.main()
+            captured = sys.stdout.getvalue()
+        finally:
+            sys.stdout = old_stdout
+        
+        assert "initialized" in captured.lower()

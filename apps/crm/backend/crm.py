@@ -14,13 +14,13 @@ DATABASE_PATH = "kali_crm.db"
 # Pipeline stages
 STAGES = ["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost"]
 STAGE_DISPLAY = {
-    "new": "🆕 New",
-    "contacted": "📧 Contacted",
-    "qualified": "✅ Qualified",
-    "proposal": "📄 Proposal",
-    "negotiation": "🤝 Negotiation",
-    "won": "🎉 Won",
-    "lost": "❌ Lost"
+    "new": "New",
+    "contacted": "Contacted",
+    "qualified": "Qualified",
+    "proposal": "Proposal",
+    "negotiation": "Negotiation",
+    "won": "Won",
+    "lost": "Lost"
 }
 
 
@@ -467,6 +467,11 @@ def get_full_analytics() -> Dict:
     }
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """CLI entry point - initializes database."""
     init_db()
     print("Database initialized!")
+
+
+if __name__ == "__main__":
+    main()

@@ -35,6 +35,9 @@ function setupEventListeners() {
         currentFilters.business = e.target.value;
         loadLeads();
     });
+    document.getElementById('viewAllActivity')?.addEventListener('click', () => {
+        loadActivities(30); // Load more activities
+    });
     document.getElementById('filterSource').addEventListener('change', () => loadLeads());
 }
 
@@ -77,6 +80,7 @@ async function loadLeads() {
     const params = new URLSearchParams();
     if (currentFilters.business) params.append('business_type', currentFilters.business);
     if (currentFilters.source) params.append('source', currentFilters.source);
+    if (currentFilters.search) params.append('search', currentFilters.search);
     
     const query = params.toString();
     currentLeads = await api(`/leads${query ? '?' + query : ''}`);
@@ -159,10 +163,10 @@ function formatNumber(num) {
 }
 
 // Load Activities
-async function loadActivities() {
-    const activities = await api('/activities?days=7');
-    if (!activities) return;
-    renderActivities(activities.slice(0, 10));
+async function loadActivities(limit = 10) {
+    const activities = await api(`/activities?days=7`);
+    if (!activities || !Array.isArray(activities)) return;
+    renderActivities(activities.slice(0, limit));
 }
 
 function renderActivities(activities) {
@@ -376,8 +380,9 @@ function closeDetailModal() {
 
 function editLead() {
     if (currentDetailLead) {
+        const leadToEdit = { ...currentDetailLead };  // Copy before closing
         closeDetailModal();
-        showAddModal(currentDetailLead);
+        showAddModal(leadToEdit);
     }
 }
 

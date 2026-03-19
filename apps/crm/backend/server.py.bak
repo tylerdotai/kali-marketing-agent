@@ -8,8 +8,6 @@ Agent Authentication:
 """
 
 from fastapi import FastAPI, HTTPException, Header, Depends
-from fastapi.security import APIKeyHeader
-import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse, PlainTextResponse
@@ -31,16 +29,6 @@ app = FastAPI(title="Kali's CRM", version="1.0.0")
 
 # Get API key from environment (optional for local use)
 API_KEY = os.getenv("CRM_API_KEY", "local-dev-key")
-
-# API Key security
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-async def verify_api_key(api_key: str = Depends(api_key_header)):
-    """Verify API key if configured."""
-    if API_KEY and API_KEY != "local-dev-key":
-        if api_key != API_KEY:
-            raise HTTPException(status_code=401, detail="Invalid API key")
-    return True
 
 def verify_api_key(x_api_key: Optional[str] = Header(None)):
     """Verify API key if configured."""
@@ -99,17 +87,6 @@ class QuickAdd(BaseModel):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "time": datetime.now().isoformat(), "version": "1.0.0"}
-
-
-@app.get("/.well-known/skill.md", include_in_schema=False)
-async def skill_md():
-    """Serve the OpenClaw skill.md for agent discovery."""
-    try:
-        with open("backend/.well-known/skill.md", "r") as f:
-            content_skill = f.read()
-        return PlainTextResponse(content_skill, media_type="text/markdown")
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="skill.md not found")
 
 
 @app.get("/.well-known/skill.md", include_in_schema=False)
