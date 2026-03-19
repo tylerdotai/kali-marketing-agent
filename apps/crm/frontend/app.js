@@ -1,107 +1,42 @@
-// Kali CRM - Main Application JavaScript
+/**
+ * CRM Frontend Application
+ * Vanilla JS, no dependencies
+ */
 
 const API = '/api';
+const STAGES = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won'];
+
+// State
 let currentLeads = [];
 let currentDetailLead = null;
-let currentFilters = { search: '', business: '', source: '' };
+let searchTimeout = null;
 
-// =====================================
-// INITIALIZATION
-// =====================================
+// ============ INITIALIZATION ============
 
 document.addEventListener('DOMContentLoaded', () => {
-    initManifest();
+    loadPipeline();
     loadStats();
-    loadLeads();
-    loadActivities();
-    setupEventListeners();
-    startDataRefresh();
+    
+    // Handle swipe gestures on mobile
+    setupSwipeGestures();
 });
 
-function initManifest() {
-    if (typeof Manifest !== 'undefined') {
-        Manifest.subscribe((state) => {
-            renderThoughts(state.agent.thoughts);
-            renderDrafts(Manifest.getDrafts());
-            updateUndoButton();
-        });
-    }
-}
-
-function setupEventListeners() {
-    const addBtn = document.querySelector('.btn-primary');
-    if (addBtn) addBtn.addEventListener('click', () => showAddModal());
-    
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            currentFilters.search = e.target.value;
-            loadLeads();
-        });
-    }
-    
-    const filterBusiness = document.getElementById('filterBusiness');
-    if (filterBusiness) {
-        filterBusiness.addEventListener('change', (e) => {
-            currentFilters.business = e.target.value;
-            loadLeads();
-        });
-    }
-    
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-            e.preventDefault();
-            handleUndo();
-        }
-        if (e.key === 'Escape') {
-            closeModal();
-            closeDetailModal();
-        }
-    });
-}
-
-function startDataRefresh() {
-    setInterval(() => {
-        loadStats();
-        loadLeads();
-        loadActivities();
-    }, 30000);
-}
-
-// =====================================
-// VIEW SWITCHING
-// =====================================
+// ============ VIEW SWITCHING ============
 
 function setView(view) {
-    document.querySelectorAll('.nav-item').forEach(btn => {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === view);
     });
     
-    const title = document.getElementById('viewTitle');
-    if (title) title.textContent = view.charAt(0).toUpperCase() + view.slice(1);
-    
-    const pipelineView = document.getElementById('pipelineView');
-    const analyticsView = document.getElementById('analyticsView');
-    if (pipelineView) pipelineView.style.display = view === 'pipeline' ? '' : 'none';
-    if (analyticsView) analyticsView.style.display = view === 'analytics' ? '' : 'none';
+    document.getElementById('pipelineView').style.display = view === 'pipeline' ? '' : 'none';
+    document.getElementById('analyticsView').classList.toggle('active', view === 'analytics');
     
     if (view === 'analytics') {
-        renderAnalytics();
-    }
-    
-    if (typeof Manifest !== 'undefined') {
-        Manifest.setState({ canvas: { activeView: view } });
+        loadStats();
     }
 }
 
-function focusSearch() {
-    const input = document.getElementById('searchInput');
-    if (input) input.focus();
-}
-
-// =====================================
-// API HELPERS
-// =====================================
+// ============ API ============
 
 async function api(endpoint, options = {}) {
     try {
@@ -118,249 +53,261 @@ async function api(endpoint, options = {}) {
     }
 }
 
-// =====================================
-// DATA LOADING
-// =====================================
+// ============ DATA LOADING ============
+
+async function loadPipeline() {
+    const data = await api('/pipeline');
+    if (!data) return;
+    renderPipeline(data);
+}
 
 async function loadStats() {
-    const stats = await api('/stats');
-    if (!stats) return;
-    
-    const totalEl = document.getElementById('totalLeadsHeader');
-    const statTotalEl = document.getElementById('statTotal');
-    const statPipelineEl = document.getElementById('statPipeline');
-    const statWonEl = document.getElementById('statWon');
-    const statActivitiesEl = document.getElementById('statActivities');
-    
-    if (totalEl) totalEl.textContent = stats.total_leads + ' leads';
-    if (statTotalEl) statTotalEl.textContent = stats.total_leads;
-    if (statPipelineEl) statPipelineEl.textContent = '$' + formatNumber(stats.pipeline_value || 0);
-    if (statWonEl) statWonEl.textContent = '$' + formatNumber(stats.won_value || 0);
-    if (statActivitiesEl) statActivitiesEl.textContent = stats.recent_activities;
+    const data = await api('/stats');
+    if (!data) return;
+    renderStats(data);
 }
 
-async function loadLeads() {
-    const params = new URLSearchParams();
-    if (currentFilters.business) params.append('business_type', currentFilters.business);
-    if (currentFilters.source) params.append('source', currentFilters.source);
-    if (currentFilters.search) params.append('search', currentFilters.search);
-    
-    const query = params.toString();
-    currentLeads = await api('/leads' + (query ? '?' + query : ''));
-    if (currentLeads === null) return;
-    renderPipeline();
+async function loadLead(id) {
+    return await api('/leads/' + id);
 }
 
-async function loadActivities() {
-    const activities = await api('/activities?days=7');
-    if (!activities || !Array.isArray(activities)) return;
-    renderActivities(activities.slice(0, 10));
+async function loadLeadActivities(id) {
+    return await api('/leads/' + id + '/activities');
 }
 
-// =====================================
-// RENDER: PIPELINE
-// =====================================
+// ============ RENDER ============
 
-function renderPipeline() {
-    const stages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
-    const stageNames = { new: 'New', contacted: 'Contacted', qualified: 'Qualified', proposal: 'Proposal', negotiation: 'Negotiation', won: 'Won', lost: 'Lost' };
+function renderPipeline(data) {
+    const pipeline = document.getElementById('pipeline');
     
-    const pipeline = document.getElementById('pipelineView');
-    if (!pipeline) return;
-    
-    pipeline.innerHTML = stages.map(stage => {
-        const stageLeads = (currentLeads || []).filter(l => l.stage === stage);
-        return '<div class="pipeline-stage">' +
-            '<div class="stage-header"><span class="stage-name">' + stageNames[stage] + '</span><span class="stage-count">' + stageLeads.length + '</span></div>' +
-            '<div class="stage-leads">' + stageLeads.map(lead => renderLeadCard(lead)).join('') + '</div>' +
-        '</div>';
+    pipeline.innerHTML = data.stages.map(stage => {
+        const leads = currentLeads.filter(l => l.stage === stage.id);
+        
+        return `
+            <div class="pipeline-stage">
+                <div class="stage-header" data-stage="${stage.id}">
+                    <span class="stage-name">${stage.name}</span>
+                    <span class="stage-count">${stage.count}</span>
+                </div>
+                <div class="stage-leads">
+                    ${stage.count === 0 ? `
+                        <div class="stage-empty">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 8v4M12 16h.01"/>
+                            </svg>
+                            <span>No leads</span>
+                        </div>
+                    ` : ''}
+                    ${currentLeads.filter(l => l.stage === stage.id).map(lead => renderLeadCard(lead)).join('')}
+                </div>
+            </div>
+        `;
     }).join('');
-}
-
-async function renderAnalytics() {
-    const analyticsView = document.getElementById('analyticsView');
-    if (!analyticsView) return;
-    
-    const analytics = await api('/analytics');
-    if (!analytics) {
-        analyticsView.innerHTML = '<div class="empty-state"><p>Failed to load analytics</p></div>';
-        return;
-    }
-    
-    const { conversion_rates, sources, business_split, activity_summary } = analytics;
-    
-    // Build analytics HTML
-    analyticsView.innerHTML = 
-        '<div class="analytics-header"><h2>Analytics</h2></div>' +
-        
-        // Summary cards
-        '<div class="analytics-cards">' +
-            '<div class="analytics-card">' +
-                '<div class="analytics-card-value">' + (conversion_rates.total_leads || 0) + '</div>' +
-                '<div class="analytics-card-label">Total Leads</div>' +
-            '</div>' +
-            '<div class="analytics-card">' +
-                '<div class="analytics-card-value">' + formatCurrency(conversion_rates.pipeline_value || 0) + '</div>' +
-                '<div class="analytics-card-label">Pipeline Value</div>' +
-            '</div>' +
-            '<div class="analytics-card">' +
-                '<div class="analytics-card-value">' + formatPercent(conversion_rates.win_rate || 0) + '%</div>' +
-                '<div class="analytics-card-label">Win Rate</div>' +
-            '</div>' +
-            '<div class="analytics-card">' +
-                '<div class="analytics-card-value">' + (activity_summary.total || 0) + '</div>' +
-                '<div class="analytics-card-label">Activities</div>' +
-            '</div>' +
-        '</div>' +
-        
-        // Stage breakdown
-        '<div class="analytics-section">' +
-            '<h3>Pipeline Breakdown</h3>' +
-            '<div class="stage-breakdown">' +
-                Object.entries(conversion_rates.stage_counts || {}).map(([stage, count]) => {
-                    const pct = conversion_rates.total_leads ? Math.round(count / conversion_rates.total_leads * 100) : 0;
-                    return '<div class="stage-row">' +
-                        '<span class="stage-label">' + stage.charAt(0).toUpperCase() + stage.slice(1) + '</span>' +
-                        '<div class="stage-bar-container"><div class="stage-bar" style="width:' + pct + '%"></div></div>' +
-                        '<span class="stage-count">' + count + '</span>' +
-                    '</div>';
-                }).join('') +
-            '</div>' +
-        '</div>' +
-        
-        // Business split
-        '<div class="analytics-section">' +
-            '<h3>Business Split</h3>' +
-            '<div class="business-split">' +
-                Object.entries(business_split || {}).map(([biz, data]) => 
-                    '<div class="business-card ' + biz + '">' +
-                        '<div class="business-name">' + (biz === 'gnb' ? 'GNB Global' : 'SaltHaus') + '</div>' +
-                        '<div class="business-stats">' +
-                            '<span>' + (data.count || 0) + ' leads</span>' +
-                            '<span>' + formatCurrency(data.pipeline_value || 0) + ' pipeline</span>' +
-                        '</div>' +
-                    '</div>'
-                ).join('') +
-            '</div>' +
-        '</div>' +
-        
-        // Source analysis
-        '<div class="analytics-section">' +
-            '<h3>Lead Sources</h3>' +
-            '<div class="sources-list">' +
-                (sources && sources.length > 0 ? sources.map(s => 
-                    '<div class="source-item">' +
-                        '<span class="source-name">' + (s.source || 'Unknown') + '</span>' +
-                        '<span class="source-count">' + s.count + ' leads</span>' +
-                        '<span class="source-value">' + formatCurrency(s.total_value || 0) + '</span>' +
-                    '</div>'
-                ).join('') : '<p class="empty-state">No source data yet</p>') +
-            '</div>' +
-        '</div>' +
-        
-        // Activity breakdown
-        '<div class="analytics-section">' +
-            '<h3>Recent Activities</h3>' +
-            '<div class="activity-breakdown">' +
-                Object.entries(activity_summary.by_type || {}).map(([type, count]) => 
-                    '<div class="activity-type">' +
-                        '<span class="activity-icon">' + getActivityIcon(type) + '</span>' +
-                        '<span class="activity-name">' + type.replace('_', ' ') + '</span>' +
-                        '<span class="activity-count">' + count + '</span>' +
-                    '</div>'
-                ).join('') +
-            '</div>' +
-        '</div>';
-}
-
-function formatCurrency(num) {
-    if (num >= 1000000) return '$' + (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return '$' + (num / 1000).toFixed(0) + 'K';
-    return '$' + num;
-}
-
-function formatPercent(num) {
-    return Math.round(num * 100);
 }
 
 function renderLeadCard(lead) {
-    const value = lead.estimated_value ? '$' + formatNumber(lead.estimated_value) : '';
-    const businessLabel = lead.business_type === 'gnb' ? 'GNB' : 'SaltHaus';
-    
-    return '<div class="lead-card ' + lead.business_type + '" id="lead-' + lead.id + '" onclick="showLeadDetail(' + lead.id + ')">' +
-        '<div class="lead-card-header">' +
-            '<div><div class="lead-name">' + escapeHtml(lead.name) + '</div>' +
-            (lead.company ? '<div class="lead-company">' + escapeHtml(lead.company) + '</div>' : '') +
-            '</div>' +
-            (value ? '<span class="lead-value">' + value + '</span>' : '') +
-        '</div>' +
-        '<div class="lead-meta">' +
-            (lead.source ? '<span class="lead-badge">' + escapeHtml(lead.source) + '</span>' : '') +
-            '<span class="lead-badge ' + lead.business_type + '">' + businessLabel + '</span>' +
-        '</div>' +
-    '</div>';
+    return `
+        <div class="lead-card" data-stage="${lead.stage}" onclick="openLeadDetail(${lead.id})">
+            <div class="stage-indicator"></div>
+            <div class="lead-name">${escapeHtml(lead.name)}</div>
+            ${lead.company ? `<div class="lead-company">${escapeHtml(lead.company)}</div>` : ''}
+            ${lead.value ? `<div class="lead-value">$${formatNumber(lead.value)}</div>` : ''}
+            <div class="lead-actions" onclick="event.stopPropagation()">
+                ${lead.email ? `
+                    <a href="mailto:${escapeHtml(lead.email)}" class="btn btn-icon" title="Email">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                        </svg>
+                    </a>
+                ` : ''}
+                ${lead.phone ? `
+                    <a href="tel:${escapeHtml(lead.phone)}" class="btn btn-icon" title="Call">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                    </a>
+                ` : ''}
+                <button class="btn btn-icon" onclick="logActivityQuick(${lead.id}, 'note')" title="Add Note">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="18" x2="12" y2="12"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `;
 }
 
-// =====================================
-// RENDER: ACTIVITIES
-// =====================================
-
-function renderActivities(activities) {
-    const list = document.getElementById('activityList');
-    if (!list) return;
+function renderStats(stats) {
+    document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value">${stats.total_leads}</div>
+            <div class="stat-label">Total Leads</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">$${formatNumber(stats.total_value)}</div>
+            <div class="stat-label">Pipeline Value</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">$${formatNumber(stats.won_value)}</div>
+            <div class="stat-label">Won Value</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${Math.round(stats.conversion_rate * 100)}%</div>
+            <div class="stat-label">Win Rate</div>
+        </div>
+    `;
     
-    if (!activities || activities.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>No recent activity</p></div>';
-        return;
-    }
-    
-    list.innerHTML = activities.map(act => {
-        const icon = getActivityIcon(act.activity_type);
-        const time = formatTime(act.created_at);
-        let leadInfo = '';
-        if (act.lead_name) {
-            leadInfo = '<strong>' + escapeHtml(act.lead_name) + '</strong>';
-            if (act.lead_company) leadInfo += ' <span style="color: var(--text-muted)">@ ' + escapeHtml(act.lead_company) + '</span>';
-        }
+    // Stage breakdown
+    api('/pipeline').then(data => {
+        if (!data) return;
         
-        return '<div class="activity-item">' +
-            '<div class="activity-icon">' + icon + '</div>' +
-            '<div class="activity-content">' +
-                '<div class="activity-text">' + leadInfo + ' <span style="color: var(--text-muted)">- ' + escapeHtml(act.description || act.activity_type) + '</span></div>' +
-                '<div class="activity-meta"><span class="activity-time">' + time + '</span></div>' +
-            '</div>' +
-        '</div>';
-    }).join('');
+        const maxCount = Math.max(...data.stages.map(s => s.count), 1);
+        
+        document.getElementById('stageBreakdown').innerHTML = `
+            <h3>Pipeline Breakdown</h3>
+            ${data.stages.map(stage => `
+                <div class="stage-row">
+                    <span class="stage-row-label">${stage.name}</span>
+                    <div class="stage-row-bar">
+                        <div class="stage-row-fill" data-stage="${stage.id}" style="width: ${(stage.count / maxCount) * 100}%"></div>
+                    </div>
+                    <span class="stage-row-value">${stage.count}</span>
+                </div>
+            `).join('')}
+        `;
+    });
 }
 
-function getActivityIcon(type) {
-    const icons = {
-        'created': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
-        'stage_change': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg>',
-        'email': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
-        'call': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-        'meeting': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
-        'note': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
-    };
-    return icons[type] || '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>';
+// ============ LEAD DETAIL ============
+
+async function openLeadDetail(id) {
+    const lead = await loadLead(id);
+    if (!lead) return;
+    
+    currentDetailLead = lead;
+    const activities = await loadLeadActivities(id);
+    
+    document.getElementById('detailName').textContent = lead.name;
+    document.getElementById('detailCompany').textContent = lead.company || 'No company';
+    
+    document.getElementById('detailContent').innerHTML = `
+        <div class="detail-section">
+            <div class="detail-fields">
+                ${lead.email ? `
+                    <div class="detail-field">
+                        <label>Email</label>
+                        <a href="mailto:${escapeHtml(lead.email)}">${escapeHtml(lead.email)}</a>
+                    </div>
+                ` : ''}
+                ${lead.phone ? `
+                    <div class="detail-field">
+                        <label>Phone</label>
+                        <a href="tel:${escapeHtml(lead.phone)}">${escapeHtml(lead.phone)}</a>
+                    </div>
+                ` : ''}
+                ${lead.source ? `
+                    <div class="detail-field">
+                        <label>Source</label>
+                        <span>${escapeHtml(lead.source)}</span>
+                    </div>
+                ` : ''}
+                <div class="detail-field">
+                    <label>Value</label>
+                    <span style="color: var(--success); font-weight: 600;">
+                        ${lead.value ? '$' + formatNumber(lead.value) : '—'}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        ${lead.notes ? `
+            <div class="detail-section">
+                <h3>Notes</h3>
+                <div class="notes-box">${escapeHtml(lead.notes)}</div>
+            </div>
+        ` : ''}
+        
+        <div class="detail-section">
+            <h3>Move Stage</h3>
+            <div class="stage-selector">
+                ${STAGES.map(s => `
+                    <button class="stage-btn ${lead.stage === s ? 'active' : ''}" 
+                            data-stage="${s}"
+                            onclick="moveStage(${lead.id}, '${s}')">
+                        ${s.charAt(0).toUpperCase() + s.slice(1)}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Log Activity</h3>
+            <div class="log-activity">
+                <button class="btn btn-secondary btn-small" onclick="logActivityQuick(${lead.id}, 'call')">Call</button>
+                <button class="btn btn-secondary btn-small" onclick="logActivityQuick(${lead.id}, 'email')">Email</button>
+                <button class="btn btn-secondary btn-small" onclick="logActivityQuick(${lead.id}, 'meeting')">Meeting</button>
+                <button class="btn btn-secondary btn-small" onclick="logActivityQuick(${lead.id}, 'note')">Note</button>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Activity History</h3>
+            <div class="activity-list">
+                ${activities.length === 0 ? '<p style="color: var(--text-muted)">No activity yet</p>' : ''}
+                ${activities.map(a => `
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            ${getActivityIcon(a.type)}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-type">${a.type.replace('_', ' ')}</div>
+                            ${a.description ? `<div class="activity-desc">${escapeHtml(a.description)}</div>` : ''}
+                            <div class="activity-time">${formatTime(a.created_at)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <button class="btn btn-secondary" onclick="editLead(${lead.id})" style="width: 100%;">
+                Edit Lead
+            </button>
+            <button class="btn btn-secondary" onclick="deleteLeadConfirm(${lead.id})" style="width: 100%; margin-top: 8px; color: var(--danger);">
+                Delete Lead
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('detailPanel').classList.add('active');
+    document.getElementById('detailOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
-// =====================================
-// MODALS: ADD/EDIT LEAD
-// =====================================
+function closeDetail() {
+    document.getElementById('detailPanel').classList.remove('active');
+    document.getElementById('detailOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    currentDetailLead = null;
+}
 
-function showAddModal(lead) {
-    document.getElementById('modalTitle').textContent = lead ? 'Edit Lead' : 'Add Lead';
+// ============ LEAD OPERATIONS ============
+
+function showAddModal(lead = null) {
+    document.getElementById('modalTitle').textContent = lead ? 'Edit Lead' : 'New Lead';
     document.getElementById('leadId').value = lead?.id || '';
     document.getElementById('leadName').value = lead?.name || '';
     document.getElementById('leadCompany').value = lead?.company || '';
     document.getElementById('leadEmail').value = lead?.email || '';
     document.getElementById('leadPhone').value = lead?.phone || '';
     document.getElementById('leadSource').value = lead?.source || '';
-    document.getElementById('leadBusiness').value = lead?.business_type || 'gnb';
-    document.getElementById('leadValue').value = lead?.estimated_value || '';
+    document.getElementById('leadValue').value = lead?.value || '';
     document.getElementById('leadNotes').value = lead?.notes || '';
-    document.getElementById('leadFollowup').value = '';
     document.getElementById('leadModal').classList.add('active');
 }
 
@@ -378,408 +325,107 @@ async function saveLead(event) {
         email: document.getElementById('leadEmail').value || null,
         phone: document.getElementById('leadPhone').value || null,
         source: document.getElementById('leadSource').value || null,
-        business_type: document.getElementById('leadBusiness').value,
-        notes: document.getElementById('leadNotes').value || null,
-        estimated_value: parseFloat(document.getElementById('leadValue').value) || null,
-        next_followup: document.getElementById('leadFollowup').value || null
+        value: parseFloat(document.getElementById('leadValue').value) || null,
+        notes: document.getElementById('leadNotes').value || null
     };
     
+    let result;
     if (id) {
-        await api('/leads/' + id, { method: 'PUT', body: JSON.stringify(data) });
-        showToast('Lead updated', 'success');
-        addAgentThought('Updated lead: ' + data.name, 'result');
+        result = await api('/leads/' + id, { method: 'PUT', body: JSON.stringify(data) });
+        showToast('Lead updated');
     } else {
-        await api('/leads', { method: 'POST', body: JSON.stringify(data) });
-        showToast('Lead created', 'success');
-        addAgentThought('Created lead: ' + data.name, 'result');
+        result = await api('/leads', { method: 'POST', body: JSON.stringify(data) });
+        showToast('Lead created');
     }
     
-    closeModal();
-    loadLeads();
-    loadStats();
-}
-
-// =====================================
-// MODALS: LEAD DETAIL
-// =====================================
-
-async function showLeadDetail(id) {
-    const lead = await api('/leads/' + id);
-    if (!lead) return;
-    
-    currentDetailLead = lead;
-    const activities = await api('/leads/' + id + '/activities');
-    
-    const value = lead.estimated_value ? '$' + formatNumber(lead.estimated_value) : '—';
-    const followup = lead.next_followup ? formatDate(lead.next_followup) : '—';
-    const created = formatDate(lead.created_at);
-    const lastContact = lead.last_contacted ? formatDate(lead.last_contacted) : 'Never';
-    
-    document.getElementById('detailTitle').textContent = lead.name;
-    document.getElementById('detailContent').innerHTML = 
-        '<div class="detail-header">' +
-            '<div>' +
-                '<div class="detail-name">' + escapeHtml(lead.name) + '</div>' +
-                '<div class="detail-company">' + escapeHtml(lead.company || 'No company') + '</div>' +
-            '</div>' +
-            '<div class="detail-actions">' +
-                '<button class="btn btn-secondary" onclick="editLead()">Edit</button>' +
-                '<button class="btn btn-danger" onclick="deleteCurrentLead()">Delete</button>' +
-            '</div>' +
-        '</div>' +
-        '<div class="detail-grid">' +
-            '<div class="detail-item"><label>Email</label><span>' + (lead.email ? '<a href="mailto:' + escapeHtml(lead.email) + '" style="color: var(--accent)">' + escapeHtml(lead.email) + '</a>' : '—') + '</span></div>' +
-            '<div class="detail-item"><label>Phone</label><span>' + (lead.phone ? '<a href="tel:' + escapeHtml(lead.phone) + '" style="color: var(--accent)">' + escapeHtml(lead.phone) + '</a>' : '—') + '</span></div>' +
-            '<div class="detail-item"><label>Source</label><span>' + escapeHtml(lead.source || '—') + '</span></div>' +
-            '<div class="detail-item"><label>Business</label><span class="lead-badge ' + lead.business_type + '">' + (lead.business_type === 'gnb' ? 'GNB Global' : 'SaltHaus') + '</span></div>' +
-            '<div class="detail-item"><label>Value</label><span style="color: var(--success); font-weight: 600;">' + value + '</span></div>' +
-            '<div class="detail-item"><label>Follow-up</label><span style="cursor:pointer;color:var(--accent)" onclick="updateFollowup()">' + followup + ' (click)</span></div>' +
-            '<div class="detail-item"><label>Created</label><span>' + created + '</span></div>' +
-            '<div class="detail-item"><label>Last Contact</label><span>' + lastContact + '</span></div>' +
-        '</div>' +
-        (lead.notes ? '<div class="detail-section"><h3>Notes</h3><div class="notes-content">' + escapeHtml(lead.notes) + '</div></div>' : '') +
-        '<div class="detail-section"><h3>Move Stage</h3><div class="stage-select">' +
-            ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'].map(s => 
-                '<button class="stage-btn ' + (lead.stage === s ? 'active' : '') + '" onclick="moveToStage(\'' + s + '\')">' + s.charAt(0).toUpperCase() + s.slice(1) + '</button>'
-            ).join('') +
-        '</div></div>' +
-        '<div class="detail-section"><h3>Log Activity</h3>' +
-            '<div style="display: flex; gap: 8px; flex-wrap: wrap;">' +
-                '<button class="btn btn-secondary" onclick="logActivity(\'email\', \'Sent email\')">Email</button>' +
-                '<button class="btn btn-secondary" onclick="logActivity(\'call\', \'Phone call\')">Call</button>' +
-                '<button class="btn btn-secondary" onclick="logActivity(\'meeting\', \'Meeting\')">Meeting</button>' +
-                '<button class="btn btn-secondary" onclick="logActivity(\'note\', \'Added note\')">Note</button>' +
-            '</div>' +
-        '</div>' +
-        '<div class="detail-section"><h3>Activity History</h3><div class="activity-detail-list">' +
-            (activities && activities.length > 0 ? activities.map(a => 
-                '<div class="activity-detail-item"><div class="activity-icon">' + getActivityIcon(a.activity_type) + '</div><div>' + escapeHtml(a.description || a.activity_type) + '<div class="activity-time">' + formatTime(a.created_at) + '</div></div></div>'
-            ).join('') : '<p style="color: var(--text-muted); padding: 12px;">No activity yet</p>') +
-        '</div></div>';
-    
-    document.getElementById('detailModal').classList.add('active');
-}
-
-function closeDetailModal() {
-    document.getElementById('detailModal').classList.remove('active');
-    currentDetailLead = null;
-}
-
-function editLead() {
-    if (currentDetailLead) {
-        closeDetailModal();
-        showAddModal(currentDetailLead);
+    if (result) {
+        closeModal();
+        await refreshData();
     }
 }
 
-async function deleteCurrentLead() {
-    if (!currentDetailLead) return;
-    if (!confirm('Delete ' + currentDetailLead.name + '? This cannot be undone.')) return;
-    
-    await api('/leads/' + currentDetailLead.id, { method: 'DELETE' });
-    closeDetailModal();
-    loadLeads();
-    loadStats();
-    showToast('Lead deleted', 'success');
-    addAgentThought('Deleted lead: ' + currentDetailLead.name, 'result');
-}
-
-async function moveToStage(stage) {
-    if (!currentDetailLead) return;
-    await api('/leads/' + currentDetailLead.id + '/stage?new_stage=' + stage, { method: 'POST' });
-    showLeadDetail(currentDetailLead.id);
-    loadLeads();
-    loadStats();
-    if (typeof Manifest !== 'undefined') {
-        Manifest.highlightElement('lead-' + currentDetailLead.id);
+async function editLead(id) {
+    const lead = await loadLead(id);
+    if (lead) {
+        closeDetail();
+        showAddModal(lead);
     }
-    showToast('Stage updated', 'success');
-    addAgentThought('Moved lead to ' + stage, 'result');
 }
 
-async function logActivity(type, description) {
-    if (!currentDetailLead) return;
-    await api('/leads/' + currentDetailLead.id + '/activity', {
+async function deleteLeadConfirm(id) {
+    if (!confirm('Delete this lead? This cannot be undone.')) return;
+    
+    const result = await api('/leads/' + id, { method: 'DELETE' });
+    if (result) {
+        closeDetail();
+        showToast('Lead deleted');
+        await refreshData();
+    }
+}
+
+async function moveStage(id, newStage) {
+    const result = await api('/leads/' + id + '/stage', {
         method: 'POST',
-        body: JSON.stringify({ activity_type: type, description })
+        body: JSON.stringify({ stage: newStage })
     });
-    showLeadDetail(currentDetailLead.id);
-    loadActivities();
-    showToast('Activity logged', 'success');
+    
+    if (result) {
+        showToast('Stage updated');
+        await refreshData();
+        openLeadDetail(id); // Refresh detail view
+    }
 }
 
-async function updateFollowup() {
-    if (!currentDetailLead) return;
-    const newDate = prompt('Set follow-up date (YYYY-MM-DD):', currentDetailLead.next_followup ? currentDetailLead.next_followup.split('T')[0] : '');
-    if (newDate === null) return;
-    await api('/leads/' + currentDetailLead.id, {
-        method: 'PUT',
-        body: JSON.stringify({ next_followup: newDate || null })
+async function logActivityQuick(id, type) {
+    const description = prompt(`Log ${type}:`, '');
+    if (description === null) return;
+    
+    const result = await api('/leads/' + id + '/activity', {
+        method: 'POST',
+        body: JSON.stringify({ type, description })
     });
-    showLeadDetail(currentDetailLead.id);
-    showToast('Follow-up updated', 'success');
-}
-
-// =====================================
-// AGENT SIDECAR FUNCTIONS
-// =====================================
-
-function addAgentThought(text, type) {
-    if (typeof Manifest !== 'undefined') {
-        Manifest.addThought(text, type || 'thinking');
-    }
-}
-
-function clearThoughts() {
-    if (typeof Manifest !== 'undefined') {
-        Manifest.clearThoughts();
-    }
-}
-
-function handleUndo() {
-    if (typeof Manifest !== 'undefined') {
-        const prev = Manifest.undo();
-        if (prev) {
-            loadLeads();
-            loadStats();
-            addAgentThought('Undid last action', 'result');
-        }
-    }
-}
-
-function updateUndoButton() {
-    const btn = document.getElementById('undoBtn');
-    if (btn && typeof Manifest !== 'undefined') {
-        btn.disabled = Manifest.getState().undoStack.length === 0;
-    }
-}
-
-function renderThoughts(thoughts) {
-    const container = document.getElementById('sidecarThoughts');
-    if (!container) return;
     
-    if (!thoughts || thoughts.length === 0) {
-        container.innerHTML = '<div class="thought-placeholder"><span class="thought-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span><span>Agent ready. Type a command.</span></div>';
-        return;
-    }
-    
-    container.innerHTML = thoughts.map(t => 
-        '<div class="thought ' + t.type + ' ' + (t.completed ? 'completed' : '') + '">' +
-            '<div class="thought-header">' +
-                '<span class="thought-type">' + getThoughtIcon(t.type) + '</span>' +
-                '<span class="thought-time">' + formatTimeShort(t.timestamp) + '</span>' +
-            '</div>' +
-            '<div class="thought-text">' + escapeHtml(t.text) + '</div>' +
-        '</div>'
-    ).join('');
-    
-    container.scrollTop = container.scrollHeight;
-}
-
-function renderDrafts(drafts) {
-    const container = document.getElementById('sidecarDrafts');
-    if (!container) return;
-    
-    if (!drafts || drafts.length === 0) {
-        container.innerHTML = '';
-        return;
-    }
-    
-    container.innerHTML = '<div class="drafts-header"><span>Proposed Changes</span><button class="drafts-accept-all" onclick="acceptAllDrafts()">Accept All</button></div>' +
-        '<div class="drafts-list">' + drafts.map(d => 
-            '<div class="draft-item" data-key="' + d.key + '">' +
-                '<div class="draft-content"><strong>' + getDraftLabel(d.key) + '</strong><div class="draft-value">' + escapeHtml(JSON.stringify(d.value)) + '</div></div>' +
-                '<div class="draft-actions">' +
-                    '<button class="draft-accept" onclick="acceptDraft(\'' + d.key + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></button>' +
-                    '<button class="draft-reject" onclick="rejectDraft(\'' + d.key + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
-                '</div>' +
-            '</div>'
-        ).join('') + '</div>';
-}
-
-function getThoughtIcon(type) {
-    const icons = {
-        'thinking': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
-        'action': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>',
-        'result': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-        'error': '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-    };
-    return icons[type] || icons.thinking;
-}
-
-function getDraftLabel(key) {
-    const labels = { 'lead:stage': 'Move Lead', 'lead:value': 'Update Value', 'lead:status': 'Change Status', 'lead:note': 'Add Note' };
-    return labels[key] || key;
-}
-
-function acceptDraft(key) {
-    if (typeof Manifest !== 'undefined') {
-        Manifest.commitDraft(key);
-        loadLeads();
-        addAgentThought('Accepted change', 'result');
+    if (result) {
+        showToast('Activity logged');
+        openLeadDetail(id); // Refresh detail view
     }
 }
 
-function rejectDraft(key) {
-    if (typeof Manifest !== 'undefined') {
-        Manifest.rejectDraft(key);
-        addAgentThought('Rejected change', 'result');
-    }
+// ============ SEARCH ============
+
+function focusSearch() {
+    const searchBar = document.getElementById('searchBar');
+    searchBar.classList.add('active');
+    document.getElementById('searchInput').focus();
 }
-
-function acceptAllDrafts() {
-    if (typeof Manifest !== 'undefined') {
-        const drafts = Manifest.getDrafts();
-        drafts.forEach(d => Manifest.commitDraft(d.key));
-        loadLeads();
-        addAgentThought('Accepted ' + drafts.length + ' changes', 'result');
-    }
-}
-
-// =====================================
-// AGENT COMMAND PROCESSING
-// =====================================
-
-function handleSidecarKeypress(event) {
-    if (event.key === 'Enter') {
-        sendSidecarCommand();
-    }
-}
-
-async function sendSidecarCommand() {
-    const input = document.getElementById('sidecarInput');
-    const command = input.value.trim();
-    if (!command) return;
-    
-    input.value = '';
-    addAgentThought(command, 'action');
-    await processCommand(command);
-}
-
-async function processCommand(command) {
-    addAgentThought('Sending to agent...', 'thinking');
-    
-    try {
-        const result = await api('/agent', {
-            method: 'POST',
-            body: JSON.stringify({ message: command })
-        });
-        
-        if (result && result.response) {
-            try {
-                const json = JSON.parse(result.response);
-                let responseText = '';
-                
-                if (json.result && json.result.payloads) {
-                    // Extract just the text from payloads
-                    responseText = json.result.payloads.map(p => p.text).join('\n').trim();
-                } else if (json.result && json.result.text) {
-                    responseText = json.result.text;
-                } else if (typeof json === 'string') {
-                    responseText = json;
-                } else {
-                    responseText = 'Agent processed your request';
-                }
-                
-                // Clean up the response - remove excessive newlines and limit length
-                responseText = responseText.replace(/\n+/g, '\n').replace(/\s+/g, ' ').trim();
-                
-                if (responseText.length > 1000) {
-                    responseText = responseText.substring(0, 1000) + '...';
-                }
-                
-                if (responseText) {
-                    addAgentThought(responseText, 'result');
-                } else {
-                    addAgentThought('Done.', 'result');
-                }
-            } catch {
-                // If not JSON, just show a cleaned version
-                const clean = result.response.replace(/\n+/g, ' ').trim().substring(0, 500);
-                addAgentThought(clean || 'Agent received your message', 'result');
-            }
-        } else if (result && result.error) {
-            const errMsg = result.error.toString().replace(/\n/g, ' ').trim().substring(0, 200);
-            addAgentThought('Error: ' + errMsg, 'error');
-        } else {
-            addAgentThought('Sent: ' + command.substring(0, 50), 'result');
-        }
-        
-        loadLeads();
-        loadStats();
-        
-    } catch (error) {
-        addAgentThought('Error: ' + error.message, 'error');
-    }
-}
-
-function parseLeadText(text) {
-    const result = { name: '', company: null, source: null, business_type: 'gnb' };
-    
-    const match = text.match(/lead[:\s]+([^,]+),?\s*([^,]+)?/i);
-    if (match) {
-        result.name = match[1].trim();
-        result.company = match[2]?.trim() || null;
-    } else {
-        result.name = text.replace(/add|lead|new|from/gi, '').trim();
-    }
-    
-    const sources = ['linkedin', 'event', 'referral', 'website', 'cold call', 'email'];
-    for (const src of sources) {
-        if (text.toLowerCase().includes(src)) {
-            result.source = src.charAt(0).toUpperCase() + src.slice(1);
-            break;
-        }
-    }
-    
-    if (text.toLowerCase().includes('consulting') || text.toLowerCase().includes('salthaus')) {
-        result.business_type = 'salthaus';
-    }
-    
-    return result;
-}
-
-// =====================================
-// SEARCH & FILTER
-// =====================================
 
 function handleSearch(value) {
-    currentFilters.search = value;
-    loadLeads();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+        currentLeads = await api('/leads?search=' + encodeURIComponent(value));
+        renderPipelineFromLeads();
+    }, 300);
 }
 
-function handleFilter() {
-    currentFilters.business = document.getElementById('filterBusiness').value;
-    loadLeads();
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchBar').classList.remove('active');
+    currentLeads = await api('/leads');
+    renderPipelineFromLeads();
 }
 
-// =====================================
-// EXPORT
-// =====================================
+// ============ HELPERS ============
 
-async function exportData() {
-    const leads = await api('/leads');
-    if (!leads) return;
-    
-    const csv = ['ID,Name,Company,Email,Phone,Source,Stage,Business,Value,Created'];
-    leads.forEach(l => {
-        csv.push([l.id, l.name, l.company || '', l.email || '', l.phone || '', l.source || '', l.stage, l.business_type, l.estimated_value || '', l.created_at].join(','));
-    });
-    
-    const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'crm-leads-' + new Date().toISOString().split('T')[0] + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Exported ' + leads.length + ' leads', 'success');
-    addAgentThought('Exported ' + leads.length + ' leads to CSV', 'result');
+async function refreshData() {
+    currentLeads = await api('/leads');
+    await loadPipeline();
+    await loadStats();
 }
 
-// =====================================
-// UTILITIES
-// =====================================
+function renderPipelineFromLeads() {
+    const data = { stages: STAGES.map(s => ({ id: s, name: s.charAt(0).toUpperCase() + s.slice(1), count: currentLeads.filter(l => l.stage === s).length })) };
+    renderPipeline(data);
+}
 
 function escapeHtml(text) {
     if (!text) return '';
@@ -792,13 +438,7 @@ function formatNumber(num) {
     if (!num) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
-    return num.toString();
-}
-
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function formatTime(dateStr) {
@@ -811,28 +451,65 @@ function formatTime(dateStr) {
     if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
     if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
     if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
-    return formatDate(dateStr);
+    return date.toLocaleDateString();
 }
 
-function formatTimeShort(ts) {
-    const diff = Date.now() - ts;
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
-    return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function getActivityIcon(type) {
+    const icons = {
+        'call': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+        'email': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+        'meeting': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+        'note': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+        'stage_change': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'
+    };
+    return icons[type] || icons.note;
 }
 
-function showToast(message, type) {
+function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
-    if (!toast) return;
     toast.textContent = message;
-    toast.className = 'toast ' + (type || 'success') + ' show';
+    toast.className = 'toast ' + type + ' show';
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// Close modals on escape key
+// ============ SWIPE GESTURES (Mobile) ============
+
+function setupSwipeGestures() {
+    const pipeline = document.getElementById('pipeline');
+    let startX = 0;
+    let scrollLeft = 0;
+    
+    pipeline.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].pageX;
+        scrollLeft = pipeline.scrollLeft;
+    });
+    
+    pipeline.addEventListener('touchmove', (e) => {
+        const x = e.touches[0].pageX;
+        const walk = (x - startX) * 1.5;
+        pipeline.scrollLeft = scrollLeft - walk;
+    });
+}
+
+// Close modals on escape
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+        closeDetail();
         closeModal();
-        closeDetailModal();
+    }
+});
+
+// Pull to refresh
+let touchStartY = 0;
+document.getElementById('pipelineView').addEventListener('touchstart', (e) => {
+    if (pipelineView.scrollTop === 0) {
+        touchStartY = e.touches[0].pageY;
+    }
+});
+
+document.getElementById('pipelineView').addEventListener('touchend', (e) => {
+    const touchEndY = e.changedTouches[0].pageY;
+    if (touchStartY - touchEndY > 50 && pipelineView.scrollTop === 0) {
+        refreshData();
     }
 });

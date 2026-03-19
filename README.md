@@ -1,175 +1,107 @@
-<a id="readme-top"></a>
+# CRM - Lightweight Lead & Pipeline Management
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://codeberg.org/tylerdotai/kali-marketing-agent">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
+A clean, agent-first CRM built for local/offline use. Track leads through your sales pipeline with a modern, responsive interface that works on desktop and mobile.
 
-  <h3 align="center">Kali's Marketing Agent</h3>
+## Features
 
-  <p align="center">
-    OpenClaw-powered marketing automation for GNB Global and SaltHaus Group.
-    <br />
-    <a href="https://codeberg.org/tylerdotai/kali-marketing-agent"><strong>View on Codeberg »</strong></a>
-  </p>
-</div>
+- **Pipeline View** - Kanban-style board with drag-scroll horizontal layout
+- **Lead Management** - Full CRUD with name, company, email, phone, source, value, notes
+- **Activity Tracking** - Log calls, emails, meetings, and notes
+- **Stage Management** - Move leads through pipeline stages
+- **Analytics** - Summary stats and stage breakdown
+- **Mobile Responsive** - Works on iOS, Android, and desktop
+- **Agent-First** - Every action is an API call for agent automation
 
+## Design
 
+- Apple-inspired light theme (#FAFAFA background, #C9A96E cream accent)
+- Clean typography with system fonts
+- Horizontal scroll pipeline (Pipefy/Trello style)
+- Slide-up detail panels on mobile
+- Touch-friendly with swipe gestures
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="#about">About</a></li>
-    <li><a href="#setup">Setup</a></li>
-    <li><a href="#skills">Skills</a></li>
-    <li><a href="#apps">Apps</a></li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#support">Support</a></li>
-  </ol>
-</details>
+## Tech Stack
 
+- **Backend:** Python 3 + FastAPI + SQLite
+- **Frontend:** Vanilla HTML/CSS/JS (no dependencies)
+- **Storage:** Local SQLite database
 
+## Quick Start
 
-<!-- ABOUT -->
-## About
-
-This is Kali's personal marketing agent — configured for her two businesses:
-
-| Business | Description |
-|----------|-------------|
-| **GNB Global** | Weather protection systems for construction companies |
-| **SaltHaus Group** | Fractional CMO and strategic consulting for SMBs |
-
-The agent handles campaign planning, content creation, lead tracking, email sequences, and proposal generation — all from her MacBook.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- SETUP -->
-## Setup
-
-### Prerequisites
-
-- MacBook (macOS 12+)
-- OpenClaw installed
-- Telegram account
-- Canva account
-- Docker (for CRM app)
-
-### Installation
-
-1. **Clone the repo**
-   ```sh
-   git clone ssh://git@codeberg.org:tylerdotai/kali-marketing-agent.git
-   cd kali-marketing-agent
-   ```
-
-2. **Run bootstrap**
-   ```sh
-   bash bootstrap.sh
-   ```
-
-3. **Add API keys**
-   ```sh
-   openclaw config set CANVA_API_TOKEN <your-canva-token>
-   ```
-
-4. **Start the CRM** (optional but recommended)
-   ```sh
-   cd apps/crm
-   docker-compose up -d
-   ```
-
-See [SETUP.md](./SETUP.md) for detailed instructions.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- SKILLS -->
-## Skills
-
-| Skill | Description |
-|-------|-------------|
-| **campaign-manager** | Plan and execute full marketing campaigns |
-| **lead-tracker** | Track leads through pipeline stages |
-| **social-post** | Generate platform-specific social content |
-| **email-nurture** | Build email nurture sequences |
-| **research** | Competitor and market research |
-| **canva** | Generate designs via Canva MCP |
-| **linkedin** | Manage LinkedIn via browser |
-| **onboarding** | Client onboarding workflows |
-| **proposals** | Generate proposals and one-pagers |
-| **analytics** | Pipeline analytics and reporting |
-| **setup** | Setup assistant and configuration |
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- APPS -->
-## Apps
-
-### Kali CRM
-Lightweight SQLite CRM for tracking leads across GNB Global and SaltHaus.
-
-**Start:** `cd apps/crm && docker-compose up -d`
-
-**Access:** http://localhost:8765
-
-**Features:**
-- Pipeline view (New → Won/Lost)
-- Lead management with activity logging
-- Quick add via natural language
-- Analytics dashboard at /analytics
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- USAGE -->
-## Usage
-
-### Examples
-
-**Create a campaign:**
-```
-"Create a campaign for GNB Global's new weather enclosure product"
+```bash
+cd apps/crm/backend
+pip install -r requirements.txt
+python3 -m uvicorn server:app --reload --port 8765
 ```
 
-**Add a lead:**
+Open http://localhost:8765
+
+## API
+
+Base URL: `http://localhost:8765/api`
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/leads` | GET | List all leads |
+| `/leads` | POST | Create lead |
+| `/leads/{id}` | GET | Get lead |
+| `/leads/{id}` | PUT | Update lead |
+| `/leads/{id}` | DELETE | Delete lead |
+| `/leads/{id}/stage` | POST | Move stage |
+| `/leads/{id}/activity` | POST | Log activity |
+| `/pipeline` | GET | Pipeline stats |
+| `/stats` | GET | Summary stats |
+
+### Example
+
+```bash
+# Add a lead
+curl -X POST http://localhost:8765/api/leads \
+  -H "Content-Type: application/json" \
+  -d '{"Name": "Sarah Johnson", "company": "Acme Corp", "value": 15000}'
+
+# Move to qualified
+curl -X POST http://localhost:8765/api/leads/1/stage \
+  -H "Content-Type: application/json" \
+  -d '{"stage": "qualified"}'
 ```
-"New lead from event - John Smith, Acme Construction"
+
+## Pipeline Stages
+
+```
+New → Contacted → Qualified → Proposal → Negotiation → Won
 ```
 
-**Generate content:**
+## For Agents
+
+The CRM is designed for agent automation. Every action is accessible via API.
+
+**Skill File:** `apps/crm/SKILL.md` - Full API documentation for OpenClaw agents.
+
+### Example Agent Commands
+
 ```
-"Write 5 LinkedIn posts for our construction clients"
+"Add lead: John Smith, TechCorp, worth 50k"
+"Move lead #3 to qualified"
+"Show me all proposal stage leads"
+"Log a call with Sarah about pricing"
 ```
 
-**Create a proposal:**
+## File Structure
+
 ```
-"Generate a one-pager for ABC Construction Company"
+apps/crm/
+├── backend/
+│   ├── server.py      # FastAPI server
+│   ├── database.py    # SQLite operations
+│   └── requirements.txt
+├── frontend/
+│   ├── index.html     # Main app
+│   ├── styles.css      # Styles
+│   └── app.js         # Application logic
+└── SKILL.md           # Agent skill documentation
 ```
 
-**Track pipeline:**
-```
-"Show me all qualified leads"
-```
+## License
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- SUPPORT -->
-## Support
-
-**Tyler Delano** — [@tylerdotai](https://twitter.com/tylerdotai)
-
-For setup help or questions about this agent.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+MIT
