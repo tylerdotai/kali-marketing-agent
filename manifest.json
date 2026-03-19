@@ -48,7 +48,17 @@
     }
   ],
   
-  "requiredConfig": [
+  "apps": [
+    {
+      "name": "kali-crm",
+      "path": "apps/crm",
+      "description": "Lightweight CRM with pipeline view and activity tracking",
+      "port": 8765,
+      "startCommand": "cd apps/crm/backend && pip install -r requirements.txt && python server.py",
+      "dockerCommand": "cd apps/crm && docker-compose up -d",
+      "requires": []
+    }
+  ],
     {
       "key": "CANVA_API_TOKEN",
       "description": "Canva API token for design generation",

@@ -27,7 +27,7 @@ The bootstrap script will:
 
 ## 📦 What's Included
 
-### Skills (5)
+### Skills (6)
 | Skill | Purpose |
 |-------|---------|
 | `campaign-manager` | Plan and execute full campaigns |
@@ -35,13 +35,12 @@ The bootstrap script will:
 | `social-post` | Generate platform-specific social content |
 | `email-nurture` | Build email nurture sequences |
 | `research` | Competitor and market research |
+| `setup` | Setup assistant and API configuration |
 
-### Setup
-| File | Purpose |
-|------|---------|
-| `bootstrap.sh` | One-command installer |
-| `manifest.json` | Skill registry and config specs |
-| `setup/` | Setup assistant skill |
+### Apps (1)
+| App | Purpose |
+|-----|---------|
+| `kali-crm` | Lightweight SQLite CRM with pipeline view |
 
 ### Templates & Workflows
 | File | Purpose |
@@ -84,6 +83,7 @@ See `KALI.md` for full profile.
 - [ ] Run `bash bootstrap.sh`
 - [ ] Add Canva API token: `openclaw config set CANVA_API_TOKEN <token>`
 - [ ] (Optional) Configure email
+- [ ] **Start CRM:** `cd apps/crm && docker-compose up -d` (then open http://localhost:8765)
 - [ ] Test: "Create a campaign brief for GNB Global"
 - [ ] Connect Telegram for notifications
 - [ ] Join FTW DAO community
@@ -101,7 +101,7 @@ See `KALI.md` for full profile.
 ```
 kali-marketing-agent/
 ├── README.md
-├── manifest.json          # Skill registry
+├── manifest.json          # Skill registry & app config
 ├── bootstrap.sh           # One-command installer
 ├── KALI.md               # Client profile
 ├── SETUP.md              # Detailed setup guide
@@ -112,9 +112,15 @@ kali-marketing-agent/
 │   ├── email-nurture/
 │   ├── research/
 │   └── setup/
+├── apps/
+│   └── crm/              # SQLite CRM app
+│       ├── backend/       # FastAPI + SQLite
+│       ├── frontend/      # Web UI
+│       └── docker-compose.yml
 ├── workflows/
 │   ├── content-creation.md
 │   └── lead-nurturing.md
-└── templates/
-    └── social-post.md
+└── docs/
+    ├── email-sequence.md
+    └── templates/
 ```
