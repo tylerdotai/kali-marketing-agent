@@ -535,72 +535,35 @@ async function sendSidecarCommand() {
 }
 
 async function processCommand(command) {
-    const cmd = command.toLowerCase();
+    addAgentThought('Sending to agent...', 'thinking');
     
     try {
-        // Add lead
-        if ((cmd.includes('add') && cmd.includes('lead')) || cmd.startsWith('new lead')) {
-            const parsed = parseLeadText(command);
-            addAgentThought('Creating lead: ' + parsed.name, 'thinking');
-            await api('/leads', { method: 'POST', body: JSON.stringify(parsed) });
-            addAgentThought('Created lead "' + parsed.name + '"', 'result');
-            loadLeads();
-            loadStats();
-            return;
-        }
+        const result = await api('/agent', {
+            method: 'POST',
+            body: JSON.stringify({ message: command })
+        });
         
-        // Move stage
-        const stageMatch = command.match(/lead\s*#?(\d+).*?(new|contacted|qualified|proposal|negotiation|won|lost)/i);
-        if (stageMatch) {
-            const leadId = stageMatch[1];
-            const stage = stageMatch[2];
-            addAgentThought('Moving lead #' + leadId + ' to ' + stage + '...', 'thinking');
-            await api('/leads/' + leadId + '/stage?new_stage=' + stage, { method: 'POST' });
-            if (typeof Manifest !== 'undefined') {
-                Manifest.highlightElement('lead-' + leadId);
+        if (result && result.response) {
+            try {
+                const json = JSON.parse(result.response);
+                if (json.result && json.result.payloads) {
+                    const text = json.result.payloads.map(p => p.text).join('\n');
+                    addAgentThought(text || 'Agent received your message', 'result');
+                } else if (json.result && json.result.text) {
+                    addAgentThought(json.result.text, 'result');
+                } else {
+                    addAgentThought('Agent processed your request', 'result');
+                }
+            } catch {
+                // If not JSON, just show the response
+                addAgentThought(result.response.substring(0, 500), 'result');
             }
-            addAgentThought('Moved lead #' + leadId + ' to ' + stage, 'result');
-            loadLeads();
-            loadStats();
-            return;
+        } else if (result && result.error) {
+            addAgentThought('Error: ' + result.error.substring(0, 200), 'error');
+        } else {
+            addAgentThought('Agent processed: ' + command.substring(0, 100), 'result');
         }
         
-        // Show leads
-        if (cmd.includes('show') || cmd.includes('list') || cmd.includes('find') || cmd.includes('search')) {
-            const leads = await api('/leads');
-            const leadList = leads.slice(0, 10).map(l => '• ' + l.name + ' (' + (l.company || 'No co') + ') - ' + l.stage).join('\n');
-            addAgentThought('Found ' + leads.length + ' leads:\n' + leadList, 'result');
-            return;
-        }
-        
-        // Stats
-        if (cmd.includes('stat') || cmd.includes('dashboard')) {
-            const stats = await api('/stats');
-            addAgentThought('Pipeline: $' + formatNumber(stats.pipeline_value) + ' | Won: $' + formatNumber(stats.won_value) + ' | Total: ' + stats.total_leads + ' leads', 'result');
-            return;
-        }
-        
-        // Delete
-        const delMatch = command.match(/delete.*lead\s*#?(\d+)/i);
-        if (delMatch) {
-            addAgentThought('Deleting lead #' + delMatch[1] + '...', 'thinking');
-            await api('/leads/' + delMatch[1], { method: 'DELETE' });
-            addAgentThought('Deleted lead #' + delMatch[1], 'result');
-            loadLeads();
-            loadStats();
-            return;
-        }
-        
-        // Help
-        if (cmd.includes('help') || cmd === '?') {
-            addAgentThought('Commands:\n• "Add lead: John Smith, Acme Corp"\n• "Move lead #5 to qualified"\n• "Show leads"\n• "Stats"\n• "Delete lead #3"', 'result');
-            return;
-        }
-        
-        // Default: quick add
-        addAgentThought('Processing: "' + command + '"', 'thinking');
-        await api('/quick-add', { method: 'POST', body: JSON.stringify({ text: command }) });
-        addAgentThought('Added lead from input', 'result');
         loadLeads();
         loadStats();
         

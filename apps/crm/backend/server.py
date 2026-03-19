@@ -250,6 +250,28 @@ async def quick_add_endpoint(quick: QuickAdd):
     return result
 
 
+@app.post("/api/agent")
+async def agent_command(cmd: dict):
+    """Proxy commands to OpenClaw agent"""
+    import subprocess
+    message = cmd.get("message", "")
+    if not message:
+        return {"error": "No message provided"}
+    
+    try:
+        result = subprocess.run(
+            ["openclaw", "agent", "--agent", "main", "--message", message, "--json"],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        return {"response": result.stdout, "error": result.stderr} if result.returncode == 0 else {"error": result.stderr}
+    except subprocess.TimeoutExpired:
+        return {"error": "Agent timed out"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/api/export")
 async def export_csv():
     """Export all leads as CSV"""
