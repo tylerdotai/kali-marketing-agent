@@ -212,7 +212,7 @@ input, select, textarea {
 
 /* ---------- Search Bar ---------- */
 .search-bar {
-    display: none;
+    /* visible on all sizes */
     align-items: center;
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-lg);
@@ -374,7 +374,7 @@ input, select, textarea {
     padding: var(--space-xl);
     overflow-y: auto;
     height: 100%;
-    display: none;
+    /* visible on all sizes */
 }
 
 .analytics-view.active {
@@ -519,7 +519,7 @@ input, select, textarea {
 
 /* ---------- Modal ---------- */
 .modal {
-    display: none;
+    /* visible on all sizes */
     position: fixed;
     inset: 0;
     z-index: 1000;
@@ -846,7 +846,7 @@ input, select, textarea {
     }
     
     .header-nav {
-        display: none;
+        /* visible on all sizes */
     }
     
     .btn-primary span {
