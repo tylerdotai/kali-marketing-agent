@@ -55,6 +55,14 @@
       "optional": []
     },
     {
+      "name": "onboarding",
+      "path": "skills/onboarding",
+      "description": "Automated client onboarding for SaltHaus consulting clients",
+      "triggers": ["new client", "onboard", "welcome", "kickoff", "client setup"],
+      "requires": ["icloud-email", "apple-reminders"],
+      "optional": []
+    },
+    {
       "name": "linkedin",
       "path": "skills/linkedin",
       "description": "Manage LinkedIn profiles and post content via browser automation",
