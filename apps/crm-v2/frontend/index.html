@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#FAFAFA">
+    <title>CRM</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="logo">CRM</h1>
+            </div>
+            <nav class="header-nav">
+                <button class="nav-btn active" data-view="pipeline" onclick="setView('pipeline')">Pipeline</button>
+                <button class="nav-btn" data-view="analytics" onclick="setView('analytics')">Analytics</button>
+            </nav>
+            <div class="header-right">
+                <button class="btn btn-icon" onclick="focusSearch()" aria-label="Search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+                <button class="btn btn-primary" onclick="showAddModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    <span>New Lead</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Search Bar (hidden by default) -->
+        <div class="search-bar" id="searchBar">
+            <input type="text" id="searchInput" placeholder="Search leads..." oninput="handleSearch(this.value)">
+            <button class="btn btn-icon" onclick="clearSearch()" aria-label="Clear">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Pipeline View -->
+            <div class="pipeline-view" id="pipelineView">
+                <div class="pipeline" id="pipeline"></div>
+            </div>
+
+            <!-- Analytics View -->
+            <div class="analytics-view" id="analyticsView">
+                <div class="stats-grid" id="statsGrid"></div>
+                <div class="stage-breakdown" id="stageBreakdown"></div>
+            </div>
+        </main>
+
+        <!-- Lead Modal -->
+        <div class="modal" id="leadModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">New Lead</h2>
+                    <button class="btn btn-icon" onclick="closeModal()" aria-label="Close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="leadForm" onsubmit="saveLead(event)">
+                    <input type="hidden" id="leadId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="leadName">Name *</label>
+                            <input type="text" id="leadName" required placeholder="Sarah Johnson">
+                        </div>
+                        <div class="form-group">
+                            <label for="leadCompany">Company</label>
+                            <input type="text" id="leadCompany" placeholder="Acme Corp">
+                        </div>
+                        <div class="form-group">
+                            <label for="leadEmail">Email</label>
+                            <input type="email" id="leadEmail" placeholder="sarah@acme.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="leadPhone">Phone</label>
+                            <input type="tel" id="leadPhone" placeholder="+1 555-0123">
+                        </div>
+                        <div class="form-group">
+                            <label for="leadSource">Source</label>
+                            <select id="leadSource">
+                                <option value="">Select source</option>
+                                <option value="LinkedIn">LinkedIn</option>
+                                <option value="Referral">Referral</option>
+                                <option value="Event">Event</option>
+                                <option value="Website">Website</option>
+                                <option value="Cold Call">Cold Call</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="leadValue">Value ($)</label>
+                            <input type="number" id="leadValue" placeholder="15000" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="leadNotes">Notes</label>
+                        <textarea id="leadNotes" rows="3" placeholder="Additional notes..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Lead</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lead Detail Slide-up -->
+        <div class="detail-panel" id="detailPanel">
+            <div class="detail-header">
+                <div class="detail-title">
+                    <h2 id="detailName">Lead Name</h2>
+                    <p id="detailCompany">Company</p>
+                </div>
+                <button class="btn btn-icon" onclick="closeDetail()" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="detail-content" id="detailContent"></div>
+        </div>
+        <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
