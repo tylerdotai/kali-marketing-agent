@@ -85,6 +85,10 @@ function setView(view) {
     if (pipelineView) pipelineView.style.display = view === 'pipeline' ? '' : 'none';
     if (analyticsView) analyticsView.style.display = view === 'analytics' ? '' : 'none';
     
+    if (view === 'analytics') {
+        renderAnalytics();
+    }
+    
     if (typeof Manifest !== 'undefined') {
         Manifest.setState({ canvas: { activeView: view } });
     }
@@ -171,6 +175,112 @@ function renderPipeline() {
             '<div class="stage-leads">' + stageLeads.map(lead => renderLeadCard(lead)).join('') + '</div>' +
         '</div>';
     }).join('');
+}
+
+async function renderAnalytics() {
+    const analyticsView = document.getElementById('analyticsView');
+    if (!analyticsView) return;
+    
+    const analytics = await api('/analytics');
+    if (!analytics) {
+        analyticsView.innerHTML = '<div class="empty-state"><p>Failed to load analytics</p></div>';
+        return;
+    }
+    
+    const { conversion_rates, sources, business_split, activity_summary } = analytics;
+    
+    // Build analytics HTML
+    analyticsView.innerHTML = 
+        '<div class="analytics-header"><h2>Analytics</h2></div>' +
+        
+        // Summary cards
+        '<div class="analytics-cards">' +
+            '<div class="analytics-card">' +
+                '<div class="analytics-card-value">' + (conversion_rates.total_leads || 0) + '</div>' +
+                '<div class="analytics-card-label">Total Leads</div>' +
+            '</div>' +
+            '<div class="analytics-card">' +
+                '<div class="analytics-card-value">' + formatCurrency(conversion_rates.pipeline_value || 0) + '</div>' +
+                '<div class="analytics-card-label">Pipeline Value</div>' +
+            '</div>' +
+            '<div class="analytics-card">' +
+                '<div class="analytics-card-value">' + formatPercent(conversion_rates.win_rate || 0) + '%</div>' +
+                '<div class="analytics-card-label">Win Rate</div>' +
+            '</div>' +
+            '<div class="analytics-card">' +
+                '<div class="analytics-card-value">' + (activity_summary.total || 0) + '</div>' +
+                '<div class="analytics-card-label">Activities</div>' +
+            '</div>' +
+        '</div>' +
+        
+        // Stage breakdown
+        '<div class="analytics-section">' +
+            '<h3>Pipeline Breakdown</h3>' +
+            '<div class="stage-breakdown">' +
+                Object.entries(conversion_rates.stage_counts || {}).map(([stage, count]) => {
+                    const pct = conversion_rates.total_leads ? Math.round(count / conversion_rates.total_leads * 100) : 0;
+                    return '<div class="stage-row">' +
+                        '<span class="stage-label">' + stage.charAt(0).toUpperCase() + stage.slice(1) + '</span>' +
+                        '<div class="stage-bar-container"><div class="stage-bar" style="width:' + pct + '%"></div></div>' +
+                        '<span class="stage-count">' + count + '</span>' +
+                    '</div>';
+                }).join('') +
+            '</div>' +
+        '</div>' +
+        
+        // Business split
+        '<div class="analytics-section">' +
+            '<h3>Business Split</h3>' +
+            '<div class="business-split">' +
+                Object.entries(business_split || {}).map(([biz, data]) => 
+                    '<div class="business-card ' + biz + '">' +
+                        '<div class="business-name">' + (biz === 'gnb' ? 'GNB Global' : 'SaltHaus') + '</div>' +
+                        '<div class="business-stats">' +
+                            '<span>' + (data.count || 0) + ' leads</span>' +
+                            '<span>' + formatCurrency(data.pipeline_value || 0) + ' pipeline</span>' +
+                        '</div>' +
+                    '</div>'
+                ).join('') +
+            '</div>' +
+        '</div>' +
+        
+        // Source analysis
+        '<div class="analytics-section">' +
+            '<h3>Lead Sources</h3>' +
+            '<div class="sources-list">' +
+                (sources && sources.length > 0 ? sources.map(s => 
+                    '<div class="source-item">' +
+                        '<span class="source-name">' + (s.source || 'Unknown') + '</span>' +
+                        '<span class="source-count">' + s.count + ' leads</span>' +
+                        '<span class="source-value">' + formatCurrency(s.total_value || 0) + '</span>' +
+                    '</div>'
+                ).join('') : '<p class="empty-state">No source data yet</p>') +
+            '</div>' +
+        '</div>' +
+        
+        // Activity breakdown
+        '<div class="analytics-section">' +
+            '<h3>Recent Activities</h3>' +
+            '<div class="activity-breakdown">' +
+                Object.entries(activity_summary.by_type || {}).map(([type, count]) => 
+                    '<div class="activity-type">' +
+                        '<span class="activity-icon">' + getActivityIcon(type) + '</span>' +
+                        '<span class="activity-name">' + type.replace('_', ' ') + '</span>' +
+                        '<span class="activity-count">' + count + '</span>' +
+                    '</div>'
+                ).join('') +
+            '</div>' +
+        '</div>';
+}
+
+function formatCurrency(num) {
+    if (num >= 1000000) return '$' + (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return '$' + (num / 1000).toFixed(0) + 'K';
+    return '$' + num;
+}
+
+function formatPercent(num) {
+    return Math.round(num * 100);
 }
 
 function renderLeadCard(lead) {

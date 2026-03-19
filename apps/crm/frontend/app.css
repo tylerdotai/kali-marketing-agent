@@ -1020,3 +1020,222 @@ form {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
+
+/* Analytics View */
+.analytics-view {
+    padding: 24px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.analytics-header {
+    margin-bottom: 24px;
+}
+
+.analytics-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.analytics-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.analytics-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.analytics-card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.analytics-card-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.analytics-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.analytics-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+}
+
+/* Stage Breakdown */
+.stage-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stage-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stage-label {
+    width: 100px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-transform: capitalize;
+}
+
+.stage-bar-container {
+    flex: 1;
+    height: 24px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stage-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    min-width: 2px;
+}
+
+.stage-bar.won { background: var(--success); }
+.stage-bar.lost { background: var(--danger); }
+.stage-bar.qualified { background: var(--accent); }
+.stage-bar.proposal { background: var(--warning); }
+
+.stage-count {
+    width: 30px;
+    text-align: right;
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+}
+
+/* Business Split */
+.business-split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.business-card {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 16px;
+    border-left: 4px solid var(--accent);
+}
+
+.business-card.gnb { border-left-color: var(--gnb); }
+.business-card.salthaus { border-left-color: var(--salthaus); }
+
+.business-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.business-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Sources List */
+.sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.source-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    gap: 12px;
+}
+
+.source-name {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-primary);
+    text-transform: capitalize;
+}
+
+.source-count {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.source-value {
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--success);
+    min-width: 80px;
+    text-align: right;
+}
+
+/* Activity Breakdown */
+.activity-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.activity-type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.activity-type .activity-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.activity-type .activity-name {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-transform: capitalize;
+}
+
+.activity-type .activity-count {
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+}
