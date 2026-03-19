@@ -138,8 +138,8 @@ def move_stage(lead_id: int, new_stage: str) -> bool:
         
         # Log the stage change
         db.execute("""
-            INSERT INTO activities (lead_id, type, description) VALUES (?, 'stage_change', ?)
-        """, (lead_id, f"Moved to {new_stage.title()}"))
+            INSERT INTO activities (lead_id, type, description, created_at) VALUES (?, 'stage_change', ?, ?)
+        """, (lead_id, f"Moved to {new_stage.title()}", now))
         
     return True
 
@@ -158,8 +158,8 @@ def add_activity(lead_id: int, activity_type: str, description: str = None) -> i
                    (now, now, lead_id))
         
         cursor = db.execute("""
-            INSERT INTO activities (lead_id, type, description) VALUES (?, ?, ?)
-        """, (lead_id, activity_type, description))
+            INSERT INTO activities (lead_id, type, description, created_at) VALUES (?, ?, ?, ?)
+        """, (lead_id, activity_type, description, now))
         return cursor.lastrowid
 
 def get_activities(lead_id: int = None, days: int = 7, limit: int = 50) -> List[Dict]:
