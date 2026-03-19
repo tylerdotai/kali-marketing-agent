@@ -180,7 +180,7 @@ function renderActivities(activities) {
     list.innerHTML = activities.map(act => {
         const icon = getActivityIcon(act.activity_type);
         const time = formatTime(act.created_at);
-        const leadInfo = act.lead_name ? `<strong>${escapeHtml(act.lead_name)}</strong>` : '';
+        let leadInfo = act.lead_name ? `<strong>${escapeHtml(act.lead_name)}</strong>` : '';
         if (act.lead_company) leadInfo += ` <span style="color: var(--text-muted)">@ ${escapeHtml(act.lead_company)}</span>`;
         
         return `

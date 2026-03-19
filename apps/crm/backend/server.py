@@ -29,6 +29,11 @@ from crm import (
 
 app = FastAPI(title="Kali's CRM", version="1.0.0")
 
+# Mount frontend static files (absolute path to this file's parent/../frontend)
+import os as _os
+_frontend_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'frontend')
+app.mount("/", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
+
 # Get API key from environment (optional for local use)
 API_KEY = os.getenv("CRM_API_KEY", "local-dev-key")
 
