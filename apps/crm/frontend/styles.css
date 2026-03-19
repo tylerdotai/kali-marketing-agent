@@ -519,7 +519,8 @@ input, select, textarea {
 
 /* ---------- Modal ---------- */
 .modal {
-    /* visible on all sizes */
+    display: none;
+    /* visible when .active class is added */
     position: fixed;
     inset: 0;
     z-index: 1000;
