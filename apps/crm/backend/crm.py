@@ -283,42 +283,55 @@ def get_upcoming_followups(days: int = 7) -> List[Dict]:
 def quick_add_lead(text: str) -> Dict:
     """
     Parse natural language and create a lead.
-    Examples: "New lead from event - John Smith, Acme Corp"
-              "Add lead: Jane Doe, CEO at Company X, from LinkedIn"
+    Examples: 
+      "New lead from website - Jane Doe, Tech Corp"
+      "Add lead: John Smith, Acme Corp, from LinkedIn"
+      "Jane Doe, Acme Corp, from Twitter"
     """
     import re
     
-    name = None
-    company = None
+    original = text
     source = None
     
-    # Try to extract name and company
-    patterns = [
-        r'(?:new lead|add lead|from)\s*[-:]\s*([^,]+),\s*([^,]+)',
-        r'([^,]+),\s*([^,]+)\s*(?:from|via)?\s*(.+)',
-    ]
+    # Extract source from 'from X' pattern BEFORE the dash
+    src_m = re.search(r',\s*from\s+(\w+)', text, re.I)
+    if src_m:
+        source = src_m.group(1)
+        text = text[:src_m.start()].strip()
+    else:
+        # Maybe it's 'from SOURCE -' at the beginning
+        src_m = re.match(r'.*?\s+from\s+(\w+)\s*-\s*(.*)', text, re.I)
+        if src_m:
+            source = src_m.group(1)
+            text = src_m.group(2)
     
-    for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            name = match.group(1).strip()
-            company = match.group(2).strip() if match.lastindex >= 2 else None
-            source = match.group(3).strip() if match.lastindex >= 3 else None
-            break
+    # Strip type prefix (new lead, add lead, lead)
+    m = re.match(r'^(?:new\s+lead|add\s+lead|lead)[:\s]+', text, re.I)
+    if m:
+        text = text[m.end():]
     
-    if not name:
-        # Fallback: use entire text as name
+    # Now split name/company
+    name = None
+    company = None
+    if ', ' in text:
+        parts = text.rsplit(', ', 1)
+        name, company = parts[0].strip(), parts[1].strip()
+    elif ' - ' in text:
+        parts = text.rsplit(' - ', 1)
+        name, company = parts[0].strip(), parts[1].strip()
+    else:
         name = text
     
     # Determine business type
     business_type = "gnb"
-    if any(w in text.lower() for w in ["consulting", "salthaus", "sba", "small business"]):
+    if any(w in original.lower() for w in ["consulting", "salthaus", "sba", "small business"]):
         business_type = "salthaus"
     
     lead_id = add_lead(name=name, company=company, source=source, business_type=business_type)
     add_activity(lead_id, "created", "Lead added via quick add")
     
     return {"id": lead_id, "name": name, "company": company, "source": source}
+
 
 
 # Analytics Functions
