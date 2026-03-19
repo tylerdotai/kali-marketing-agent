@@ -190,12 +190,12 @@ Agent: Generates platform-specific posts with hashtags and design requests
 - [x] LinkedIn management (browser-based)
 - [x] Gmail integration (via gog skill)
 - [x] Client onboarding flow
+- [x] Proposal templates
 
 #### Apps
 - [x] Kali CRM (SQLite-based pipeline tracking)
 
 #### Coming Soon
-- [ ] Proposal templates
 - [ ] Analytics dashboard
 
 See the [open issues](https://codeberg.org/tylerdotai/kali-marketing-agent/issues) for full list.

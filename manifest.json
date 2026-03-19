@@ -55,6 +55,14 @@
       "optional": []
     },
     {
+      "name": "proposals",
+      "path": "skills/proposals",
+      "description": "Generate proposal documents for GNB Global and SaltHaus consulting",
+      "triggers": ["proposal", "one-pager", "case study", "pricing", "quote", "SOW"],
+      "requires": ["canva"],
+      "optional": []
+    },
+    {
       "name": "onboarding",
       "path": "skills/onboarding",
       "description": "Automated client onboarding for SaltHaus consulting clients",
