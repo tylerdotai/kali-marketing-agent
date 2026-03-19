@@ -80,6 +80,9 @@ async function loadLeadActivities(id) {
 function renderPipeline(data) {
     const pipeline = document.getElementById('pipeline');
     
+    // Save scroll position before re-render
+    const scrollLeft = pipeline.scrollLeft;
+    
     pipeline.innerHTML = data.stages.map(stage => {
         const leads = currentLeads.filter(l => l.stage === stage.id);
         
@@ -104,6 +107,9 @@ function renderPipeline(data) {
             </div>
         `;
     }).join('');
+    
+    // Restore scroll position after re-render
+    pipeline.scrollLeft = scrollLeft;
 }
 
 function renderLeadCard(lead) {
@@ -485,10 +491,11 @@ function setupSwipeGestures() {
     });
     
     pipeline.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // Prevent browser scroll
         const x = e.touches[0].pageX;
         const walk = (x - startX) * 1.5;
         pipeline.scrollLeft = scrollLeft - walk;
-    });
+    }, { passive: false });
 }
 
 // Close modals on escape
@@ -505,11 +512,15 @@ document.getElementById('pipelineView').addEventListener('touchstart', (e) => {
     if (pipelineView.scrollTop === 0) {
         touchStartY = e.touches[0].pageY;
     }
-});
+}, { passive: true });
 
 document.getElementById('pipelineView').addEventListener('touchend', (e) => {
     const touchEndY = e.changedTouches[0].pageY;
-    if (touchStartY - touchEndY > 50 && pipelineView.scrollTop === 0) {
-        refreshData();
+    // Only trigger pull-to-refresh if mostly vertical swipe
+    const deltaY = touchEndY - touchStartY;
+    if (deltaY > 50 && deltaY > Math.abs(e.changedTouches[0].pageX - startX)) {
+        if (pipelineView.scrollTop === 0) {
+            refreshData();
+        }
     }
 });
