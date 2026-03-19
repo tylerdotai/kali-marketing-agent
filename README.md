@@ -37,4 +37,8 @@ kali-marketing-agent/
 
 For lead management, see the standalone CRM repository:
 
-**https://codeberg.org/tylerdotai/lightweight-crm**
+https://codeberg.org/tylerdotai/lightweight-crm
+
+---
+
+Built with
