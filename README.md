@@ -1,14 +1,5 @@
 <a id="readme-top"></a>
 
-<!-- PROJECT SHIELDS -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![License][license-shield]][license-url]
-
-
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -88,10 +79,10 @@ Kali's Marketing Agent is an OpenClaw-powered automation system designed for mar
 
 ### Built With
 
-* [![OpenClaw][OpenClaw]][OpenClaw-url]
-* [![FastAPI][FastAPI]][FastAPI-url]
-* [![SQLite][SQLite]][SQLite-url]
-* [![Canva][Canva]][Canva-url]
+* [OpenClaw](https://openclaw.ai)
+* [FastAPI](https://fastapi.tiangolo.com)
+* [SQLite](https://sqlite.org)
+* [Canva](https://canva.com)
 
 
 
@@ -247,26 +238,3 @@ Distributed under the Unlicense License. See `LICENSE` for more information.
 Project Link: https://codeberg.org/tylerdotai/kali-marketing-agent
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-[contributors-shield]: https://img.shields.io/codeberg/contributors/tylerdotai/kali-marketing-agent?style=for-the-badge
-[contributors-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/members
-[forks-shield]: https://img.shields.io/codeberg/forks/tylerdotai/kali-marketing-agent?style=for-the-badge
-[forks-url]: https://codeberg.org/tylerdotai/kali-marketing-agent
-[stars-shield]: https://img.shields.io/codeberg/stars/tylerdotai/kali-marketing-agent?style=for-the-badge
-[stars-url]: https://codeberg.org/tylerdotai/kali-marketing-agent
-[issues-shield]: https://img.shields.io/codeberg/issues/tylerdotai/kali-marketing-agent?style=for-the-badge
-[issues-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/issues
-[license-shield]: https://img.shields.io/codeberg/license/tylerdotai/kali-marketing-agent?style=for-the-badge
-[license-url]: https://codeberg.org/tylerdotai/kali-marketing-agent/blob/main/LICENSE
-
-[OpenClaw]: https://img.shields.io/badge/OpenClaw-000000?style=for-the-badge&logo=openclaw&logoColor=white
-[OpenClaw-url]: https://openclaw.ai
-[FastAPI]: https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white
-[FastAPI-url]: https://fastapi.tiangolo.com
-[SQLite]: https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white
-[SQLite-url]: https://sqlite.org
-[Canva]: https://img.shields.io/badge/Canva-00C4CC?style=for-the-badge&logo=canva&logoColor=white
-[Canva-url]: https://canva.com
