@@ -457,15 +457,17 @@ function formatNumber(num) {
 
 function formatTime(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now - date;
-    
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
-    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
-    if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
-    return date.toLocaleDateString();
+    // Handle both ISO format (with T) and space-separated format
+    const normalized = dateStr.replace(' ', 'T');
+    const date = new Date(normalized);
+    if (isNaN(date.getTime())) return dateStr; // fallback to raw string
+    return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
 }
 
 function getActivityIcon(type) {
