@@ -668,22 +668,41 @@ async function processCommand(command) {
         if (result && result.response) {
             try {
                 const json = JSON.parse(result.response);
+                let responseText = '';
+                
                 if (json.result && json.result.payloads) {
-                    const text = json.result.payloads.map(p => p.text).join('\n');
-                    addAgentThought(text || 'Agent received your message', 'result');
+                    // Extract just the text from payloads
+                    responseText = json.result.payloads.map(p => p.text).join('\n').trim();
                 } else if (json.result && json.result.text) {
-                    addAgentThought(json.result.text, 'result');
+                    responseText = json.result.text;
+                } else if (typeof json === 'string') {
+                    responseText = json;
                 } else {
-                    addAgentThought('Agent processed your request', 'result');
+                    responseText = 'Agent processed your request';
+                }
+                
+                // Clean up the response - remove excessive newlines and limit length
+                responseText = responseText.replace(/\n+/g, '\n').replace(/\s+/g, ' ').trim();
+                
+                if (responseText.length > 1000) {
+                    responseText = responseText.substring(0, 1000) + '...';
+                }
+                
+                if (responseText) {
+                    addAgentThought(responseText, 'result');
+                } else {
+                    addAgentThought('Done.', 'result');
                 }
             } catch {
-                // If not JSON, just show the response
-                addAgentThought(result.response.substring(0, 500), 'result');
+                // If not JSON, just show a cleaned version
+                const clean = result.response.replace(/\n+/g, ' ').trim().substring(0, 500);
+                addAgentThought(clean || 'Agent received your message', 'result');
             }
         } else if (result && result.error) {
-            addAgentThought('Error: ' + result.error.substring(0, 200), 'error');
+            const errMsg = result.error.toString().replace(/\n/g, ' ').trim().substring(0, 200);
+            addAgentThought('Error: ' + errMsg, 'error');
         } else {
-            addAgentThought('Agent processed: ' + command.substring(0, 100), 'result');
+            addAgentThought('Sent: ' + command.substring(0, 50), 'result');
         }
         
         loadLeads();
