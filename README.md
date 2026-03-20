@@ -251,7 +251,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 **Agent Built by:** Tyler Delano — [@tylerdotai](https://x.com/tylerdotai)
 
-**Project Link:** [https://codeberg.org/tylerdotai/kali-marketing-agent](https://codeberg.org/tylerdotai/kali-marketing-agent)
+**Project Link:** [https://github.com/tylerdotai/kali-marketing-agent](https://github.com/tylerdotai/kali-marketing-agent)
 
 ---
 
