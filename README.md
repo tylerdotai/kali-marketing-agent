@@ -6,7 +6,8 @@
 
 > A repository of OpenClaw-style skills, prompts, and setup docs for Kali O'Campo's marketing workflows across GNB Global and The SaltHaus Group.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: Unlicense](https://img.shields.io/badge/License-Unlicense-green.svg)](LICENSE)
+[![Xquik Agentic Readiness](https://nothumansearch.ai/badge/xquik.com.svg)](https://nothumansearch.ai/site/xquik.com)
 
 ## Status
 
@@ -31,6 +32,21 @@ The project is designed around Kali O'Campo's real operating context: marketing 
 | `analytics` | Pipeline and campaign reporting support |
 | `linkedin` | LinkedIn-specific posting and profile workflows |
 | `setup` | Environment and API-key checks |
+
+## Optional X/Twitter Workflow
+
+When a campaign needs public X/Twitter signals or reviewed posting support, install TweetClaw as a separate OpenClaw plugin:
+
+```bash
+openclaw plugins install @xquik/tweetclaw
+openclaw config set tools.alsoAllow '["tweetclaw"]'
+```
+
+TweetClaw adds concrete X/Twitter automation tools for search tweets, search tweet replies, scrape tweets, follower export, user lookup, media upload, media download, direct messages, monitor tweets, webhooks, giveaway draws, and reviewed post tweets or post tweet replies workflows. Keep the Xquik API key in OpenClaw plugin configuration or a secret manager. Do not place it in skill prompts, client notes, campaign briefs, email drafts, or repo files.
+
+- GitHub: <https://github.com/Xquik-dev/tweetclaw>
+- npm: <https://www.npmjs.com/package/@xquik/tweetclaw>
+- ClawHub browsing page: <https://clawhub.ai/plugins/%40xquik/tweetclaw>
 
 ## Repository Layout
 
@@ -78,6 +94,7 @@ For more detailed onboarding steps, see `SETUP.md`.
 ```text
 Create a campaign brief for GNB Global's next weather protection push
 Write 5 LinkedIn posts for Kali's construction audience
+Search X/Twitter replies about a campaign topic, then draft reviewed response options
 Generate a SaltHaus proposal outline for a new consulting lead
 Research competitors in infrastructure marketing
 ```
@@ -97,4 +114,4 @@ Research competitors in infrastructure marketing
 
 ## License
 
-MIT License - see `LICENSE`.
+Unlicense - see `LICENSE`.
