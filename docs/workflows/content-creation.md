@@ -47,6 +47,13 @@ End-to-end content pipeline from idea to published post.
 - Script outline
 - Caption with hashtags
 
+**X/Twitter with TweetClaw:**
+- Hook tweet or thread outline
+- Reply draft options for reviewed engagement
+- Source tweet URLs or IDs used as context
+- Monitor terms for the campaign
+- UTM source set to `twitter` or `x`
+
 ---
 
 ## Phase 3: Design
@@ -95,6 +102,8 @@ Notes: [platform, caption text, design file location]
    - Or publish directly
 3. Add UTM parameters for tracking
 4. Confirm all posts scheduled
+
+For X/Twitter workflows, use TweetClaw only when it is installed and configured in OpenClaw. Review every post tweet, post tweet reply, direct message, media upload, and media download action before execution.
 
 ### Quick Publish Template
 ```
@@ -150,3 +159,4 @@ When OpenClaw has Canva MCP connected:
 | `canva [request]` | Generate designs |
 | `schedule [content]` | Create calendar reminder |
 | `analytics [date range]` | Pull performance data |
+| `x/twitter signals for [campaign]` | Search tweets, replies, and public campaign context with TweetClaw |
